@@ -1,0 +1,65 @@
+// GENERATED CODE - DO NOT MODIFY BY HAND
+
+part of 'chat_message.dart';
+
+// **************************************************************************
+// JsonSerializableGenerator
+// **************************************************************************
+
+_$ChatMessageImpl _$$ChatMessageImplFromJson(Map<String, dynamic> json) =>
+    _$ChatMessageImpl(
+      id: (json['id'] as num).toInt(),
+      chatRoomId: (json['chatRoomId'] as num).toInt(),
+      senderId: (json['senderId'] as num).toInt(),
+      senderName: json['senderName'] as String?,
+      senderAvatar: json['senderAvatar'] as String?,
+      content: json['content'] as String,
+      createdAt: json['createdAt'] as String,
+      updatedAt: json['updatedAt'] as String?,
+      mediaUrl: json['mediaUrl'] as String?,
+      mediaType: json['mediaType'] as String?,
+      replyToMessageId: (json['replyToMessageId'] as num?)?.toInt(),
+      replyToContent: json['replyToContent'] as String?,
+      replyToSenderName: json['replyToSenderName'] as String?,
+      sondageId: (json['sondageId'] as num?)?.toInt(),
+      deleted: json['deleted'] as bool? ?? false,
+      edited: json['edited'] as bool? ?? false,
+      read: json['read'] as bool? ?? false,
+      mentions:
+          (json['mentions'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const [],
+      reactions:
+          (json['reactions'] as List<dynamic>?)
+              ?.map((e) => ChatReaction.fromJson(e as Map<String, dynamic>))
+              .toList() ??
+          const [],
+      fromBot: json['fromBot'] as bool? ?? false,
+      botName: json['botName'] as String?,
+    );
+
+Map<String, dynamic> _$$ChatMessageImplToJson(_$ChatMessageImpl instance) =>
+    <String, dynamic>{
+      'id': instance.id,
+      'chatRoomId': instance.chatRoomId,
+      'senderId': instance.senderId,
+      'senderName': instance.senderName,
+      'senderAvatar': instance.senderAvatar,
+      'content': instance.content,
+      'createdAt': instance.createdAt,
+      'updatedAt': instance.updatedAt,
+      'mediaUrl': instance.mediaUrl,
+      'mediaType': instance.mediaType,
+      'replyToMessageId': instance.replyToMessageId,
+      'replyToContent': instance.replyToContent,
+      'replyToSenderName': instance.replyToSenderName,
+      'sondageId': instance.sondageId,
+      'deleted': instance.deleted,
+      'edited': instance.edited,
+      'read': instance.read,
+      'mentions': instance.mentions,
+      'reactions': instance.reactions,
+      'fromBot': instance.fromBot,
+      'botName': instance.botName,
+    };
