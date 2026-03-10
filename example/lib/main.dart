@@ -175,81 +175,88 @@ class _LoginScreenState extends State<LoginScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: const Color(0xFF075E54),
-      body: Center(
-        child: Card(
-          margin: const EdgeInsets.all(32),
-          child: Padding(
-            padding: const EdgeInsets.all(32),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(Icons.chat_bubble,
-                      size: 64, color: Color(0xFF075E54)),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'Chat Flutter Demo',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 24),
-                  TextFormField(
-                    controller: _baseUrlCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Base URL (chat-api)',
-                      prefixIcon: Icon(Icons.link),
-                      border: OutlineInputBorder(),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          padding: EdgeInsets.fromLTRB(
+            32,
+            32,
+            32,
+            32 + MediaQuery.of(context).viewInsets.bottom,
+          ),
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.chat_bubble,
+                        size: 64, color: Color(0xFF075E54)),
+                    const SizedBox(height: 8),
+                    const Text(
+                      'Chat Flutter Demo',
+                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                     ),
-                    validator: (v) =>
-                        (v?.isNotEmpty == true) ? null : 'Requis',
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _userIdCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'User ID',
-                      prefixIcon: Icon(Icons.numbers),
-                      border: OutlineInputBorder(),
-                    ),
-                    keyboardType: TextInputType.number,
-                    validator: (v) =>
-                        int.tryParse(v ?? '') != null ? null : 'ID invalide',
-                  ),
-                  const SizedBox(height: 16),
-                  TextFormField(
-                    controller: _usernameCtrl,
-                    decoration: const InputDecoration(
-                      labelText: 'Nom d\'affichage',
-                      prefixIcon: Icon(Icons.person),
-                      border: OutlineInputBorder(),
-                    ),
-                    validator: (v) =>
-                        (v?.isNotEmpty == true) ? null : 'Requis',
-                  ),
-                  const SizedBox(height: 24),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      onPressed: _loading ? null : _submit,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFF075E54),
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8)),
+                    const SizedBox(height: 24),
+                    TextFormField(
+                      controller: _baseUrlCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Base URL (chat-api)',
+                        prefixIcon: Icon(Icons.link),
+                        border: OutlineInputBorder(),
                       ),
-                      child: _loading
-                          ? const SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                  strokeWidth: 2, color: Colors.white),
-                            )
-                          : const Text('Se connecter',
-                              style: TextStyle(fontSize: 16)),
+                      validator: (v) =>
+                          (v?.isNotEmpty == true) ? null : 'Requis',
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _userIdCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'User ID',
+                        prefixIcon: Icon(Icons.numbers),
+                        border: OutlineInputBorder(),
+                      ),
+                      keyboardType: TextInputType.number,
+                      validator: (v) =>
+                          int.tryParse(v ?? '') != null ? null : 'ID invalide',
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _usernameCtrl,
+                      decoration: const InputDecoration(
+                        labelText: 'Nom d\'affichage',
+                        prefixIcon: Icon(Icons.person),
+                        border: OutlineInputBorder(),
+                      ),
+                      validator: (v) =>
+                          (v?.isNotEmpty == true) ? null : 'Requis',
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _loading ? null : _submit,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFF075E54),
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8)),
+                        ),
+                        child: _loading
+                            ? const SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2, color: Colors.white),
+                              )
+                            : const Text('Se connecter',
+                                style: TextStyle(fontSize: 16)),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
