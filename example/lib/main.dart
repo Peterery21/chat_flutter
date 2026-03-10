@@ -33,40 +33,40 @@ class _ChatExampleAppState extends State<ChatExampleApp> {
       GoRoute(
         path: '/chats',
         builder: (_, __) => ChatListScreen(
-          onRoomTap: (room) => context.push('/chats/${room.id}', extra: room),
-          onNewChat: () => context.push('/new-chat'),
+          onRoomTap: (room) => _router.push('/chats/${room.id}', extra: room),
+          onNewChat: () => _router.push('/new-chat'),
         ),
       ),
       GoRoute(
         path: '/chats/:roomId',
-        builder: (context, state) {
+        builder: (_, state) {
           final roomId = int.parse(state.pathParameters['roomId']!);
           final room = state.extra as ChatRoom?;
           return ChatScreen(
             roomId: roomId,
             onGroupSettings: room?.isGroup == true
-                ? () => context.push('/chats/$roomId/settings', extra: room)
+                ? () => _router.push('/chats/$roomId/settings', extra: room)
                 : null,
           );
         },
       ),
       GoRoute(
         path: '/chats/:roomId/settings',
-        builder: (context, state) {
+        builder: (_, state) {
           final room = state.extra as ChatRoom;
           return GroupSettingsScreen(
             room: room,
-            onRoomLeft: () => context.go('/chats'),
-            onRoomDeleted: () => context.go('/chats'),
+            onRoomLeft: () => _router.go('/chats'),
+            onRoomDeleted: () => _router.go('/chats'),
           );
         },
       ),
       GoRoute(
         path: '/new-chat',
-        builder: (context, __) => NewChatScreen(
+        builder: (_, __) => NewChatScreen(
           onRoomCreated: (room) {
-            context.pop();
-            context.push('/chats/${room.id}', extra: room);
+            _router.pop();
+            _router.push('/chats/${room.id}', extra: room);
           },
         ),
       ),
@@ -80,7 +80,8 @@ class _ChatExampleAppState extends State<ChatExampleApp> {
   }) async {
     await ChatModule.init(
       baseUrl: baseUrl,
-      authTokenProvider: () async => 'demo-token',
+      // JWT token for local test (userId=1, secret matches application.yml default)
+      authTokenProvider: () async => 'eyJhbGciOiJIUzUxMiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxIiwicm9sZXMiOlsiUk9MRV9VU0VSIl0sImlhdCI6MTc3MzA5Nzc2NiwiZXhwIjoxODA0NjMzNzY2fQ.QvMyxX0PjUwM_5j5WtLVQmpUuLcwZg5W6ktivHc97UU6F75zV_JV9djY3E1iphKgWvX37jkf9LSuKGbJPvsKzA',
       currentUserId: userId,
       currentUserName: username,
       theme: const ChatTheme(
@@ -138,7 +139,7 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _baseUrlCtrl = TextEditingController(text: 'http://localhost:8080');
+  final _baseUrlCtrl = TextEditingController(text: 'http://192.168.2.78:8060');
   final _userIdCtrl = TextEditingController(text: '1');
   final _usernameCtrl = TextEditingController(text: 'Alice');
   bool _loading = false;

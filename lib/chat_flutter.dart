@@ -50,3 +50,7 @@ export 'src/ui/widgets/chat_input_bar.dart';
 export 'src/ui/widgets/typing_indicator.dart';
 export 'src/ui/widgets/reaction_picker.dart';
 export 'src/ui/widgets/pinned_message_bar.dart';
+export 'src/ui/widgets/voice_recorder_bar.dart';
+export 'src/ui/widgets/audio_player_widget.dart';
+export 'src/ui/widgets/video_player_widget.dart';
+export 'src/ui/widgets/file_attachment_widget.dart';

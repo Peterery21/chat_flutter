@@ -9,9 +9,11 @@ class ChatListBloc extends Bloc<ChatListEvent, ChatListState> {
     on<ChatListLoadRequested>(_onLoad);
     on<ChatListRoomsUpdated>(_onRoomsUpdated);
     on<ChatListRoomTypingUpdated>(_onTypingUpdated);
+    on<ChatListMentionReceived>(_onMentionReceived);
   }
 
   StreamSubscription? _roomsSub;
+  StreamSubscription? _mentionSub;
 
   Future<void> _onLoad(
     ChatListLoadRequested event,
@@ -27,6 +29,12 @@ class ChatListBloc extends Bloc<ChatListEvent, ChatListState> {
       _roomsSub = ChatModule.stomp.roomListFor(event.userId).listen(
         (updatedRooms) => add(ChatListRoomsUpdated(updatedRooms)),
       );
+
+      // Subscribe to incoming @mention notifications
+      await _mentionSub?.cancel();
+      _mentionSub = ChatModule.stomp.mentionsFor(event.userId).listen(
+        (msg) => add(ChatListMentionReceived(msg)),
+      );
     } catch (e) {
       emit(ChatListError(e.toString()));
     }
@@ -41,6 +49,22 @@ class ChatListBloc extends Bloc<ChatListEvent, ChatListState> {
       emit(current.copyWith(rooms: event.rooms));
     } else {
       emit(ChatListLoaded(rooms: event.rooms));
+    }
+  }
+
+  void _onMentionReceived(
+    ChatListMentionReceived event,
+    Emitter<ChatListState> emit,
+  ) {
+    final current = state;
+    if (current is ChatListLoaded) {
+      final updated = current.rooms.map((r) {
+        if (r.id == event.message.chatRoomId) {
+          return r.copyWith(unreadCount: r.unreadCount + 1);
+        }
+        return r;
+      }).toList();
+      emit(current.copyWith(rooms: updated));
     }
   }
 
@@ -63,6 +87,7 @@ class ChatListBloc extends Bloc<ChatListEvent, ChatListState> {
   @override
   Future<void> close() async {
     await _roomsSub?.cancel();
+    await _mentionSub?.cancel();
     return super.close();
   }
 }

@@ -33,3 +33,10 @@ class ChatListRoomTypingUpdated extends ChatListEvent {
   @override
   List<Object?> get props => [roomId, username, isTyping];
 }
+
+class ChatListMentionReceived extends ChatListEvent {
+  const ChatListMentionReceived(this.message);
+  final ChatMessage message;
+  @override
+  List<Object?> get props => [message];
+}

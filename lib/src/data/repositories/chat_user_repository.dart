@@ -18,6 +18,9 @@ class ChatUserRepository {
   Future<Map<String, dynamic>> getPresence(int chatUserId) =>
       _api.getPresence(chatUserId);
 
+  Future<List<ChatUserResult>> searchUsers(String query) =>
+      _api.searchUsers(query);
+
   Future<void> block(int blockerId, int blockedId) =>
       _api.blockUser(blockerId, blockedId);
 

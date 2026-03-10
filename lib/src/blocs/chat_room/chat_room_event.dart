@@ -28,12 +28,16 @@ class ChatRoomSendMessage extends ChatRoomEvent {
     required this.content,
     this.replyToMessageId,
     this.mediaFile,
+    this.mediaFilename,
+    this.mentionedUserIds,
   });
   final String content;
   final int? replyToMessageId;
   final File? mediaFile;
+  final String? mediaFilename;
+  final List<int>? mentionedUserIds;
   @override
-  List<Object?> get props => [content, replyToMessageId];
+  List<Object?> get props => [content, replyToMessageId, mentionedUserIds];
 }
 
 class ChatRoomLoadOlderMessages extends ChatRoomEvent {

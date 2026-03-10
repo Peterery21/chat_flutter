@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../config/chat_module.dart';
 import 'chat_room_event.dart';
@@ -81,10 +82,13 @@ class ChatRoomBloc extends Bloc<ChatRoomEvent, ChatRoomState> {
         content: event.content,
         replyToMessageId: event.replyToMessageId,
         mediaFile: event.mediaFile,
+        mediaFilename: event.mediaFilename,
+        mentionedUserIds: event.mentionedUserIds,
       );
       final updated = [msg, ...current.messages];
       emit(current.copyWith(messages: updated, sendingMessage: false));
-    } catch (_) {
+    } catch (e) {
+      debugPrint('[ChatRoomBloc] sendMessage error: $e');
       emit(current.copyWith(sendingMessage: false));
     }
   }

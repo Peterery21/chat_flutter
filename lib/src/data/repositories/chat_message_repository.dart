@@ -42,6 +42,8 @@ class ChatMessageRepository {
     required String content,
     int? replyToMessageId,
     File? mediaFile,
+    String? mediaFilename,
+    List<int>? mentionedUserIds,
   }) =>
       _api.sendMessage(
         userId: userId,
@@ -49,6 +51,8 @@ class ChatMessageRepository {
         content: content,
         replyToMessageId: replyToMessageId,
         mediaFile: mediaFile,
+        mediaFilename: mediaFilename,
+        mentionedUserIds: mentionedUserIds,
       );
 
   Future<void> deleteForMe(int id) => _api.deleteMessageForMe(id);

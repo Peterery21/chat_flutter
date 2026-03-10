@@ -1,0 +1,20 @@
+name: record_linux
+description: Local stub for record_linux that implements startStream (record_platform_interface >=1.4.0).
+version: 0.7.3
+
+environment:
+  sdk: ^3.3.0
+  flutter: ">=3.16.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  record_platform_interface: ">=1.2.0 <2.0.0"
+
+flutter:
+  plugin:
+    implements: record
+    platforms:
+      linux:
+        pluginClass: RecordLinuxPlugin
+        dartPluginClass: RecordLinux

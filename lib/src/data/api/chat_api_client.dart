@@ -61,9 +61,21 @@ class ChatApiClient {
 
   // ─── ChatRoom ─────────────────────────────────────────────────────────────
 
+  /// Parses a ChatRoom from backend JSON, mapping nested chatUser participants.
+  static ChatRoom _parseRoom(Map<String, dynamic> json) {
+    final rawParticipants = json['participants'] as List<dynamic>?;
+    final room = ChatRoom.fromJson(json);
+    if (rawParticipants == null || rawParticipants.isEmpty) return room;
+    return room.copyWith(
+      participants: rawParticipants
+          .map((e) => ChatParticipant.fromBackendJson(e as Map<String, dynamic>))
+          .toList(),
+    );
+  }
+
   Future<List<ChatRoom>> getRoomsByUser(int userId) async {
     final res = await _dio.get('/chats/room/byUser/$userId');
-    return (res.data as List).map((e) => ChatRoom.fromJson(e)).toList();
+    return (res.data as List).map((e) => _parseRoom(e)).toList();
   }
 
   Future<ChatRoom> createRoom({
@@ -80,7 +92,7 @@ class ChatApiClient {
       if (groupName != null) 'groupName': groupName,
       'participantIds': participantIds,
     });
-    return ChatRoom.fromJson(res.data);
+    return _parseRoom(res.data as Map<String, dynamic>);
   }
 
   Future<ChatRoom> getRoom(int roomId, int userId) async {
@@ -88,7 +100,7 @@ class ChatApiClient {
       'roomId': roomId,
       'userId': userId,
     });
-    return ChatRoom.fromJson(res.data);
+    return _parseRoom(res.data as Map<String, dynamic>);
   }
 
   Future<void> addParticipant(int roomId, int userId) async {
@@ -131,7 +143,7 @@ class ChatApiClient {
 
   Future<List<ChatRoom>> getArchivedRooms() async {
     final res = await _dio.get('/chats/rooms/archived');
-    return (res.data as List).map((e) => ChatRoom.fromJson(e)).toList();
+    return (res.data as List).map((e) => _parseRoom(e as Map<String, dynamic>)).toList();
   }
 
   Future<void> pinMessage(int roomId, int messageId) async {
@@ -150,31 +162,45 @@ class ChatApiClient {
     required String content,
     int? replyToMessageId,
     File? mediaFile,
+    String? mediaFilename,
     String? mediaBase64,
     String? mediaCategory,
+    List<int>? mentionedUserIds,
   }) async {
-    if (mediaFile != null || mediaBase64 != null) {
-      final formData = FormData.fromMap({
-        'userId': userId,
-        'chatRoomId': chatRoomId,
-        'content': content,
-        if (replyToMessageId != null) 'replyToMessageId': replyToMessageId,
-        if (mediaCategory != null) 'mediaCategory': mediaCategory,
-        if (mediaFile != null)
-          'file': await MultipartFile.fromFile(mediaFile.path),
-        if (mediaBase64 != null) 'mediaBase64': mediaBase64,
-      });
-      final res = await _dio.post('/chats/messages/send', data: formData);
-      return ChatMessage.fromJson(res.data);
-    }
-
-    final res = await _dio.post('/chats/messages/send', data: {
-      'userId': userId,
+    // Backend uses @ModelAttribute → always multipart/form-data
+    // Field name is `chatUserId` (internal chat user id), not `userId`
+    final formData = FormData.fromMap({
+      'chatUserId': userId,
       'chatRoomId': chatRoomId,
       'content': content,
       if (replyToMessageId != null) 'replyToMessageId': replyToMessageId,
+      if (mediaCategory != null) 'mediaCategory': mediaCategory,
+      if (mediaFile != null)
+        'mediaFile': await MultipartFile.fromFile(
+          mediaFile.path,
+          filename: mediaFilename ?? mediaFile.path.split('/').last,
+        ),
+      if (mediaFilename != null) 'mediaFilename': mediaFilename,
+      if (mediaBase64 != null) 'mediaBytes': mediaBase64,
     });
+    // Spring @ModelAttribute with List<Long>: repeated fields
+    if (mentionedUserIds != null && mentionedUserIds.isNotEmpty) {
+      formData.fields.addAll(
+        mentionedUserIds.map((id) => MapEntry('mentionedUserIds', id.toString())),
+      );
+    }
+    final res = await _dio.post('/chats/messages/send', data: formData);
     return ChatMessage.fromJson(res.data);
+  }
+
+  Future<List<ChatUserResult>> searchUsers(String query) async {
+    final res = await _dio.get(
+      '/chats/user/search',
+      queryParameters: {'q': query},
+    );
+    return (res.data as List)
+        .map((e) => ChatUserResult.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   Future<List<ChatMessage>> getMessages({

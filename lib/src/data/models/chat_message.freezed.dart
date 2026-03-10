@@ -38,7 +38,7 @@ mixin _$ChatMessage {
   bool get deleted => throw _privateConstructorUsedError;
   bool get edited => throw _privateConstructorUsedError;
   bool get read => throw _privateConstructorUsedError;
-  List<String> get mentions => throw _privateConstructorUsedError;
+  List<int> get mentionedUserIds => throw _privateConstructorUsedError;
   List<ChatReaction> get reactions => throw _privateConstructorUsedError;
   bool get fromBot => throw _privateConstructorUsedError;
   String? get botName => throw _privateConstructorUsedError;
@@ -78,7 +78,7 @@ abstract class $ChatMessageCopyWith<$Res> {
     bool deleted,
     bool edited,
     bool read,
-    List<String> mentions,
+    List<int> mentionedUserIds,
     List<ChatReaction> reactions,
     bool fromBot,
     String? botName,
@@ -117,7 +117,7 @@ class _$ChatMessageCopyWithImpl<$Res, $Val extends ChatMessage>
     Object? deleted = null,
     Object? edited = null,
     Object? read = null,
-    Object? mentions = null,
+    Object? mentionedUserIds = null,
     Object? reactions = null,
     Object? fromBot = null,
     Object? botName = freezed,
@@ -192,10 +192,10 @@ class _$ChatMessageCopyWithImpl<$Res, $Val extends ChatMessage>
                 ? _value.read
                 : read // ignore: cast_nullable_to_non_nullable
                       as bool,
-            mentions: null == mentions
-                ? _value.mentions
-                : mentions // ignore: cast_nullable_to_non_nullable
-                      as List<String>,
+            mentionedUserIds: null == mentionedUserIds
+                ? _value.mentionedUserIds
+                : mentionedUserIds // ignore: cast_nullable_to_non_nullable
+                      as List<int>,
             reactions: null == reactions
                 ? _value.reactions
                 : reactions // ignore: cast_nullable_to_non_nullable
@@ -241,7 +241,7 @@ abstract class _$$ChatMessageImplCopyWith<$Res>
     bool deleted,
     bool edited,
     bool read,
-    List<String> mentions,
+    List<int> mentionedUserIds,
     List<ChatReaction> reactions,
     bool fromBot,
     String? botName,
@@ -279,7 +279,7 @@ class __$$ChatMessageImplCopyWithImpl<$Res>
     Object? deleted = null,
     Object? edited = null,
     Object? read = null,
-    Object? mentions = null,
+    Object? mentionedUserIds = null,
     Object? reactions = null,
     Object? fromBot = null,
     Object? botName = freezed,
@@ -354,10 +354,10 @@ class __$$ChatMessageImplCopyWithImpl<$Res>
             ? _value.read
             : read // ignore: cast_nullable_to_non_nullable
                   as bool,
-        mentions: null == mentions
-            ? _value._mentions
-            : mentions // ignore: cast_nullable_to_non_nullable
-                  as List<String>,
+        mentionedUserIds: null == mentionedUserIds
+            ? _value._mentionedUserIds
+            : mentionedUserIds // ignore: cast_nullable_to_non_nullable
+                  as List<int>,
         reactions: null == reactions
             ? _value._reactions
             : reactions // ignore: cast_nullable_to_non_nullable
@@ -396,11 +396,11 @@ class _$ChatMessageImpl implements _ChatMessage {
     this.deleted = false,
     this.edited = false,
     this.read = false,
-    final List<String> mentions = const [],
+    final List<int> mentionedUserIds = const [],
     final List<ChatReaction> reactions = const [],
     this.fromBot = false,
     this.botName,
-  }) : _mentions = mentions,
+  }) : _mentionedUserIds = mentionedUserIds,
        _reactions = reactions;
 
   factory _$ChatMessageImpl.fromJson(Map<String, dynamic> json) =>
@@ -443,13 +443,14 @@ class _$ChatMessageImpl implements _ChatMessage {
   @override
   @JsonKey()
   final bool read;
-  final List<String> _mentions;
+  final List<int> _mentionedUserIds;
   @override
   @JsonKey()
-  List<String> get mentions {
-    if (_mentions is EqualUnmodifiableListView) return _mentions;
+  List<int> get mentionedUserIds {
+    if (_mentionedUserIds is EqualUnmodifiableListView)
+      return _mentionedUserIds;
     // ignore: implicit_dynamic_type
-    return EqualUnmodifiableListView(_mentions);
+    return EqualUnmodifiableListView(_mentionedUserIds);
   }
 
   final List<ChatReaction> _reactions;
@@ -469,7 +470,7 @@ class _$ChatMessageImpl implements _ChatMessage {
 
   @override
   String toString() {
-    return 'ChatMessage(id: $id, chatRoomId: $chatRoomId, senderId: $senderId, senderName: $senderName, senderAvatar: $senderAvatar, content: $content, createdAt: $createdAt, updatedAt: $updatedAt, mediaUrl: $mediaUrl, mediaType: $mediaType, replyToMessageId: $replyToMessageId, replyToContent: $replyToContent, replyToSenderName: $replyToSenderName, sondageId: $sondageId, deleted: $deleted, edited: $edited, read: $read, mentions: $mentions, reactions: $reactions, fromBot: $fromBot, botName: $botName)';
+    return 'ChatMessage(id: $id, chatRoomId: $chatRoomId, senderId: $senderId, senderName: $senderName, senderAvatar: $senderAvatar, content: $content, createdAt: $createdAt, updatedAt: $updatedAt, mediaUrl: $mediaUrl, mediaType: $mediaType, replyToMessageId: $replyToMessageId, replyToContent: $replyToContent, replyToSenderName: $replyToSenderName, sondageId: $sondageId, deleted: $deleted, edited: $edited, read: $read, mentionedUserIds: $mentionedUserIds, reactions: $reactions, fromBot: $fromBot, botName: $botName)';
   }
 
   @override
@@ -506,7 +507,10 @@ class _$ChatMessageImpl implements _ChatMessage {
             (identical(other.deleted, deleted) || other.deleted == deleted) &&
             (identical(other.edited, edited) || other.edited == edited) &&
             (identical(other.read, read) || other.read == read) &&
-            const DeepCollectionEquality().equals(other._mentions, _mentions) &&
+            const DeepCollectionEquality().equals(
+              other._mentionedUserIds,
+              _mentionedUserIds,
+            ) &&
             const DeepCollectionEquality().equals(
               other._reactions,
               _reactions,
@@ -536,7 +540,7 @@ class _$ChatMessageImpl implements _ChatMessage {
     deleted,
     edited,
     read,
-    const DeepCollectionEquality().hash(_mentions),
+    const DeepCollectionEquality().hash(_mentionedUserIds),
     const DeepCollectionEquality().hash(_reactions),
     fromBot,
     botName,
@@ -575,7 +579,7 @@ abstract class _ChatMessage implements ChatMessage {
     final bool deleted,
     final bool edited,
     final bool read,
-    final List<String> mentions,
+    final List<int> mentionedUserIds,
     final List<ChatReaction> reactions,
     final bool fromBot,
     final String? botName,
@@ -619,7 +623,7 @@ abstract class _ChatMessage implements ChatMessage {
   @override
   bool get read;
   @override
-  List<String> get mentions;
+  List<int> get mentionedUserIds;
   @override
   List<ChatReaction> get reactions;
   @override

@@ -24,7 +24,7 @@ class ChatMessage with _$ChatMessage {
     @Default(false) bool deleted,
     @Default(false) bool edited,
     @Default(false) bool read,
-    @Default([]) List<String> mentions,
+    @Default([]) List<int> mentionedUserIds,
     @Default([]) List<ChatReaction> reactions,
     @Default(false) bool fromBot,
     String? botName,

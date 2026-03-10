@@ -25,9 +25,9 @@ _$ChatMessageImpl _$$ChatMessageImplFromJson(Map<String, dynamic> json) =>
       deleted: json['deleted'] as bool? ?? false,
       edited: json['edited'] as bool? ?? false,
       read: json['read'] as bool? ?? false,
-      mentions:
-          (json['mentions'] as List<dynamic>?)
-              ?.map((e) => e as String)
+      mentionedUserIds:
+          (json['mentionedUserIds'] as List<dynamic>?)
+              ?.map((e) => (e as num).toInt())
               .toList() ??
           const [],
       reactions:
@@ -58,7 +58,7 @@ Map<String, dynamic> _$$ChatMessageImplToJson(_$ChatMessageImpl instance) =>
       'deleted': instance.deleted,
       'edited': instance.edited,
       'read': instance.read,
-      'mentions': instance.mentions,
+      'mentionedUserIds': instance.mentionedUserIds,
       'reactions': instance.reactions,
       'fromBot': instance.fromBot,
       'botName': instance.botName,

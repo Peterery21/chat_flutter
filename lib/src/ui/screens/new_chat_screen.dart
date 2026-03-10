@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../config/chat_module.dart';
 import '../../data/models/models.dart';
@@ -17,6 +18,7 @@ class _NewChatScreenState extends State<NewChatScreen>
   bool _isGroup = false;
   final _nameCtrl = TextEditingController();
   final _selectedIds = <int>[];
+  final _selectedNames = <int, String>{};
   bool _loading = false;
 
   @override
@@ -122,26 +124,32 @@ class _NewChatScreenState extends State<NewChatScreen>
       body: TabBarView(
         controller: _tabs,
         children: [
-          // Direct tab — enter userId manually or pick from list
           _DirectTab(
-            onSelectUser: (userId) {
+            onSelectUser: (id, name) {
               setState(() {
                 _selectedIds.clear();
-                _selectedIds.add(userId);
+                _selectedNames.clear();
+                _selectedIds.add(id);
+                _selectedNames[id] = name;
               });
             },
             selectedId: _selectedIds.isEmpty ? null : _selectedIds.first,
+            selectedName: _selectedIds.isEmpty
+                ? null
+                : _selectedNames[_selectedIds.first],
           ),
-          // Group tab
           _GroupTab(
             nameCtrl: _nameCtrl,
             selectedIds: _selectedIds,
-            onToggleUser: (userId) {
+            selectedNames: _selectedNames,
+            onToggleUser: (id, name) {
               setState(() {
-                if (_selectedIds.contains(userId)) {
-                  _selectedIds.remove(userId);
+                if (_selectedIds.contains(id)) {
+                  _selectedIds.remove(id);
+                  _selectedNames.remove(id);
                 } else {
-                  _selectedIds.add(userId);
+                  _selectedIds.add(id);
+                  _selectedNames[id] = name;
                 }
               });
             },
@@ -152,10 +160,17 @@ class _NewChatScreenState extends State<NewChatScreen>
   }
 }
 
+// ─── Direct Tab ──────────────────────────────────────────────────────────────
+
 class _DirectTab extends StatefulWidget {
-  const _DirectTab({required this.onSelectUser, this.selectedId});
-  final Function(int userId) onSelectUser;
+  const _DirectTab({
+    required this.onSelectUser,
+    this.selectedId,
+    this.selectedName,
+  });
+  final Function(int userId, String name) onSelectUser;
   final int? selectedId;
+  final String? selectedName;
 
   @override
   State<_DirectTab> createState() => _DirectTabState();
@@ -163,68 +178,120 @@ class _DirectTab extends StatefulWidget {
 
 class _DirectTabState extends State<_DirectTab> {
   final _ctrl = TextEditingController();
+  List<ChatUserResult> _results = [];
+  bool _searching = false;
+  Timer? _debounce;
 
   @override
   void dispose() {
     _ctrl.dispose();
+    _debounce?.cancel();
     super.dispose();
+  }
+
+  void _onSearchChanged(String q) {
+    _debounce?.cancel();
+    if (q.trim().isEmpty) {
+      setState(() => _results = []);
+      return;
+    }
+    _debounce = Timer(const Duration(milliseconds: 300), () async {
+      setState(() => _searching = true);
+      try {
+        final results = await ChatModule.users.searchUsers(q.trim());
+        if (mounted) setState(() => _results = results);
+      } catch (_) {
+      } finally {
+        if (mounted) setState(() => _searching = false);
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = ChatModule.theme;
     return Padding(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('Entrez l\'ID utilisateur du contact :',
-              style: TextStyle(fontWeight: FontWeight.w500)),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Expanded(
-                child: TextField(
-                  controller: _ctrl,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    hintText: 'User ID',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.person),
-                  ),
+          TextField(
+            controller: _ctrl,
+            onChanged: _onSearchChanged,
+            decoration: InputDecoration(
+              hintText: 'Rechercher un contact...',
+              border: const OutlineInputBorder(),
+              prefixIcon: const Icon(Icons.search),
+              suffixIcon: _searching
+                  ? const Padding(
+                      padding: EdgeInsets.all(12),
+                      child: SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2)),
+                    )
+                  : null,
+            ),
+          ),
+          if (widget.selectedId != null && widget.selectedName != null) ...[
+            const SizedBox(height: 12),
+            Chip(
+              avatar: CircleAvatar(
+                radius: 12,
+                backgroundColor: theme.primaryColor.withOpacity(0.2),
+                child: Text(
+                  widget.selectedName![0].toUpperCase(),
+                  style: TextStyle(fontSize: 10, color: theme.primaryColor),
                 ),
               ),
-              const SizedBox(width: 8),
-              ElevatedButton(
-                onPressed: () {
-                  final id = int.tryParse(_ctrl.text.trim());
-                  if (id != null) widget.onSelectUser(id);
-                },
-                child: const Text('Sélect.'),
-              ),
-            ],
-          ),
-          if (widget.selectedId != null) ...[
-            const SizedBox(height: 16),
-            Chip(
-              avatar: const Icon(Icons.person, size: 16),
-              label: Text('User #${widget.selectedId}'),
+              label: Text(widget.selectedName!),
             ),
           ],
+          const SizedBox(height: 8),
+          Expanded(
+            child: ListView.builder(
+              itemCount: _results.length,
+              itemBuilder: (_, i) {
+                final r = _results[i];
+                final isSelected = widget.selectedId == r.id;
+                return ListTile(
+                  leading: CircleAvatar(
+                    backgroundImage:
+                        r.photo != null ? NetworkImage(r.photo!) : null,
+                    backgroundColor: theme.primaryColor.withOpacity(0.2),
+                    child: r.photo == null
+                        ? Text(r.name[0].toUpperCase(),
+                            style: TextStyle(color: theme.primaryColor))
+                        : null,
+                  ),
+                  title: Text(r.name),
+                  trailing: isSelected
+                      ? Icon(Icons.check_circle, color: theme.primaryColor)
+                      : null,
+                  onTap: () => widget.onSelectUser(r.id, r.name),
+                );
+              },
+            ),
+          ),
         ],
       ),
     );
   }
 }
 
+// ─── Group Tab ───────────────────────────────────────────────────────────────
+
 class _GroupTab extends StatelessWidget {
   const _GroupTab({
     required this.nameCtrl,
     required this.selectedIds,
+    required this.selectedNames,
     required this.onToggleUser,
   });
   final TextEditingController nameCtrl;
   final List<int> selectedIds;
-  final Function(int userId) onToggleUser;
+  final Map<int, String> selectedNames;
+  final Function(int userId, String name) onToggleUser;
 
   @override
   Widget build(BuildContext context) {
@@ -242,19 +309,25 @@ class _GroupTab extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 16),
-          const Text('Membres (entrez les IDs séparés par virgule) :',
-              style: TextStyle(fontWeight: FontWeight.w500)),
-          const SizedBox(height: 8),
-          _AddMemberField(onAdd: onToggleUser),
-          const SizedBox(height: 8),
-          Wrap(
-            spacing: 8,
-            children: selectedIds
-                .map((id) => Chip(
-                      label: Text('User #$id'),
-                      onDeleted: () => onToggleUser(id),
-                    ))
-                .toList(),
+          if (selectedIds.isNotEmpty) ...[
+            Wrap(
+              spacing: 8,
+              runSpacing: 4,
+              children: selectedIds
+                  .map((id) => Chip(
+                        label: Text(selectedNames[id] ?? 'User #$id'),
+                        onDeleted: () =>
+                            onToggleUser(id, selectedNames[id] ?? ''),
+                      ))
+                  .toList(),
+            ),
+            const SizedBox(height: 8),
+          ],
+          Expanded(
+            child: _MemberSearchField(
+              selectedIds: selectedIds,
+              onToggle: onToggleUser,
+            ),
           ),
         ],
       ),
@@ -262,47 +335,97 @@ class _GroupTab extends StatelessWidget {
   }
 }
 
-class _AddMemberField extends StatefulWidget {
-  const _AddMemberField({required this.onAdd});
-  final Function(int userId) onAdd;
+class _MemberSearchField extends StatefulWidget {
+  const _MemberSearchField({
+    required this.selectedIds,
+    required this.onToggle,
+  });
+  final List<int> selectedIds;
+  final Function(int userId, String name) onToggle;
 
   @override
-  State<_AddMemberField> createState() => _AddMemberFieldState();
+  State<_MemberSearchField> createState() => _MemberSearchFieldState();
 }
 
-class _AddMemberFieldState extends State<_AddMemberField> {
+class _MemberSearchFieldState extends State<_MemberSearchField> {
   final _ctrl = TextEditingController();
+  List<ChatUserResult> _results = [];
+  bool _searching = false;
+  Timer? _debounce;
 
   @override
   void dispose() {
     _ctrl.dispose();
+    _debounce?.cancel();
     super.dispose();
+  }
+
+  void _onSearchChanged(String q) {
+    _debounce?.cancel();
+    if (q.trim().isEmpty) {
+      setState(() => _results = []);
+      return;
+    }
+    _debounce = Timer(const Duration(milliseconds: 300), () async {
+      setState(() => _searching = true);
+      try {
+        final results = await ChatModule.users.searchUsers(q.trim());
+        if (mounted) setState(() => _results = results);
+      } catch (_) {
+      } finally {
+        if (mounted) setState(() => _searching = false);
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    final theme = ChatModule.theme;
+    return Column(
       children: [
-        Expanded(
-          child: TextField(
-            controller: _ctrl,
-            keyboardType: TextInputType.number,
-            decoration: const InputDecoration(
-              hintText: 'Ajouter par User ID',
-              border: OutlineInputBorder(),
-            ),
+        TextField(
+          controller: _ctrl,
+          onChanged: _onSearchChanged,
+          decoration: InputDecoration(
+            hintText: 'Rechercher des membres...',
+            border: const OutlineInputBorder(),
+            prefixIcon: const Icon(Icons.person_search),
+            suffixIcon: _searching
+                ? const Padding(
+                    padding: EdgeInsets.all(12),
+                    child: SizedBox(
+                        width: 16,
+                        height: 16,
+                        child: CircularProgressIndicator(strokeWidth: 2)),
+                  )
+                : null,
           ),
         ),
-        const SizedBox(width: 8),
-        IconButton(
-          icon: const Icon(Icons.add_circle),
-          onPressed: () {
-            final id = int.tryParse(_ctrl.text.trim());
-            if (id != null) {
-              widget.onAdd(id);
-              _ctrl.clear();
-            }
-          },
+        const SizedBox(height: 8),
+        Expanded(
+          child: ListView.builder(
+            itemCount: _results.length,
+            itemBuilder: (_, i) {
+              final r = _results[i];
+              final isSelected = widget.selectedIds.contains(r.id);
+              return ListTile(
+                leading: CircleAvatar(
+                  backgroundImage:
+                      r.photo != null ? NetworkImage(r.photo!) : null,
+                  backgroundColor: theme.primaryColor.withOpacity(0.2),
+                  child: r.photo == null
+                      ? Text(r.name[0].toUpperCase(),
+                          style: TextStyle(color: theme.primaryColor))
+                      : null,
+                ),
+                title: Text(r.name),
+                trailing: isSelected
+                    ? Icon(Icons.check_circle, color: theme.primaryColor)
+                    : const Icon(Icons.add_circle_outline),
+                onTap: () => widget.onToggle(r.id, r.name),
+              );
+            },
+          ),
         ),
       ],
     );

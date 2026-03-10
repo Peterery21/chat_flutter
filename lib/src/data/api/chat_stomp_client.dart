@@ -39,6 +39,7 @@ class ChatStompClient {
   final _messageControllers = <int, StreamController<ChatMessage>>{};
   final _roomListControllers = <int, StreamController<List<ChatRoom>>>{};
   final _typingControllers = <int, StreamController<TypingEvent>>{};
+  final _mentionControllers = <int, StreamController<ChatMessage>>{};
 
   Future<void> connect() async {
     final token = await _authTokenProvider();
@@ -84,6 +85,9 @@ class ChatStompClient {
       await c.close();
     }
     for (final c in _typingControllers.values) {
+      await c.close();
+    }
+    for (final c in _mentionControllers.values) {
       await c.close();
     }
   }
@@ -153,6 +157,29 @@ class ChatStompClient {
               username: data['username'] as String,
               typing: data['typing'] as bool,
             ));
+          }
+        },
+      );
+    }
+
+    return controller.stream;
+  }
+
+  /// Stream of incoming @mention notifications for [userId].
+  Stream<ChatMessage> mentionsFor(int userId) {
+    final controller = _mentionControllers.putIfAbsent(
+      userId,
+      () => StreamController<ChatMessage>.broadcast(),
+    );
+
+    if (_connected) {
+      _client.subscribe(
+        destination: '/queue/chat/user/$userId/mentions',
+        callback: (frame) {
+          if (frame.body != null) {
+            final msg = ChatMessage.fromJson(
+                jsonDecode(frame.body!) as Map<String, dynamic>);
+            controller.add(msg);
           }
         },
       );

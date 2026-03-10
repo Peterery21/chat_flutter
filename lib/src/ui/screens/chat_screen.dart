@@ -96,12 +96,14 @@ class _ChatScreenBodyState extends State<_ChatScreenBody> {
   void _cancelReply() => setState(() => _replyToMessage = null);
 
   void _sendMessage(String content,
-      {int? replyToId, File? mediaFile}) {
+      {int? replyToId, File? mediaFile, String? mediaFilename, List<int>? mentionedUserIds}) {
     context.read<ChatRoomBloc>().add(
           ChatRoomSendMessage(
             content: content,
             replyToMessageId: replyToId,
             mediaFile: mediaFile,
+            mediaFilename: mediaFilename,
+            mentionedUserIds: mentionedUserIds,
           ),
         );
     context.read<TypingCubit>().stopTyping(

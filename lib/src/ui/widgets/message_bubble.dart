@@ -3,6 +3,9 @@ import '../../config/chat_module.dart';
 import '../../config/chat_theme.dart';
 import '../../data/models/models.dart';
 import 'reaction_picker.dart';
+import 'audio_player_widget.dart';
+import 'video_player_widget.dart';
+import 'file_attachment_widget.dart';
 
 /// Displays a single chat message bubble.
 /// Handles: text, media, reply-to, reactions, bot indicator, delete/edit states.
@@ -71,7 +74,7 @@ class MessageBubble extends StatelessWidget {
                 if (message.deleted)
                   _DeletedText(theme: theme)
                 else ...[
-                  if (message.mediaUrl != null) _MediaContent(message: message),
+                  if (message.mediaUrl != null) _MediaContent(message: message, isSender: _isOwn),
                   _MessageText(message: message, theme: theme),
                 ],
                 _MessageFooter(message: message, theme: theme, isOwn: _isOwn),
@@ -205,15 +208,41 @@ class _ReplyPreview extends StatelessWidget {
 }
 
 class _MediaContent extends StatelessWidget {
-  const _MediaContent({required this.message});
+  const _MediaContent({required this.message, required this.isSender});
   final ChatMessage message;
+  final bool isSender;
 
   @override
   Widget build(BuildContext context) {
     final url = message.mediaUrl!;
-    final isImage = message.mediaType?.startsWith('image') == true ||
-        url.contains('/images/');
-    if (isImage) {
+    final mediaType = message.mediaType ?? '';
+    final filename = url.split('/').last;
+
+    // Audio
+    if (mediaType.startsWith('audio') ||
+        url.toLowerCase().endsWith('.mp3') ||
+        url.toLowerCase().endsWith('.wav') ||
+        url.toLowerCase().endsWith('.m4a') ||
+        url.toLowerCase().endsWith('.aac')) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 6),
+        child: AudioPlayerWidget(audioUrl: url, isSender: isSender),
+      );
+    }
+
+    // Video
+    if (mediaType.startsWith('video') ||
+        url.toLowerCase().endsWith('.mp4') ||
+        url.toLowerCase().endsWith('.mov') ||
+        url.toLowerCase().endsWith('.avi')) {
+      return Padding(
+        padding: const EdgeInsets.only(bottom: 6),
+        child: VideoPlayerWidget(videoUrl: url),
+      );
+    }
+
+    // Image
+    if (mediaType.startsWith('image') || url.contains('/Image/')) {
       return Padding(
         padding: const EdgeInsets.only(bottom: 6),
         child: ClipRRect(
@@ -226,21 +255,14 @@ class _MediaContent extends StatelessWidget {
         ),
       );
     }
+
+    // Document / file fallback
     return Padding(
       padding: const EdgeInsets.only(bottom: 6),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          const Icon(Icons.attach_file, size: 18),
-          const SizedBox(width: 4),
-          Flexible(
-            child: Text(
-              url.split('/').last,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 13, color: Colors.blue),
-            ),
-          ),
-        ],
+      child: FileAttachmentWidget(
+        fileUrl: url,
+        filename: filename,
+        isSender: isSender,
       ),
     );
   }
@@ -277,9 +299,40 @@ class _MessageText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Text(
+    return _buildContent(
       message.content,
-      style: TextStyle(fontSize: theme.messageFontSize),
+      theme.messageFontSize,
+    );
+  }
+
+  Widget _buildContent(String content, double fontSize) {
+    final regex = RegExp(r'(@\w+)');
+    if (!regex.hasMatch(content)) {
+      return Text(content, style: TextStyle(fontSize: fontSize));
+    }
+    final spans = <TextSpan>[];
+    int lastEnd = 0;
+    for (final match in regex.allMatches(content)) {
+      if (match.start > lastEnd) {
+        spans.add(TextSpan(text: content.substring(lastEnd, match.start)));
+      }
+      spans.add(TextSpan(
+        text: match.group(0),
+        style: TextStyle(
+          color: ChatModule.theme.primaryColor,
+          fontWeight: FontWeight.bold,
+        ),
+      ));
+      lastEnd = match.end;
+    }
+    if (lastEnd < content.length) {
+      spans.add(TextSpan(text: content.substring(lastEnd)));
+    }
+    return RichText(
+      text: TextSpan(
+        style: TextStyle(fontSize: fontSize),
+        children: spans,
+      ),
     );
   }
 }

@@ -21,3 +21,9 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+dependency_overrides:
+  # record_linux 0.7.2 is missing startStream (added in record_platform_interface 1.4.0).
+  # Use local stub that adds the missing method.
+  record_linux:
+    path: ../record_linux_stub
