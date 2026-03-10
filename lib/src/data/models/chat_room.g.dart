@@ -12,7 +12,7 @@ _$ChatRoomImpl _$$ChatRoomImplFromJson(Map<String, dynamic> json) =>
       name: json['name'] as String,
       isGroup: json['isGroup'] as bool? ?? false,
       groupId: (json['groupId'] as num?)?.toInt(),
-      avatar: json['avatar'] as String?,
+      avatar: json['photo'] as String?,
       lastMessage: json['lastMessage'] == null
           ? null
           : ChatMessage.fromJson(json['lastMessage'] as Map<String, dynamic>),
@@ -35,7 +35,7 @@ Map<String, dynamic> _$$ChatRoomImplToJson(_$ChatRoomImpl instance) =>
       'name': instance.name,
       'isGroup': instance.isGroup,
       'groupId': instance.groupId,
-      'avatar': instance.avatar,
+      'photo': instance.avatar,
       'lastMessage': instance.lastMessage,
       'unreadCount': instance.unreadCount,
       'participants': instance.participants,

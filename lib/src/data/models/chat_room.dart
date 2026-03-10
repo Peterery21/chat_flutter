@@ -12,7 +12,7 @@ class ChatRoom with _$ChatRoom {
     required String name,
     @Default(false) bool isGroup,
     int? groupId,
-    String? avatar,
+    @JsonKey(name: 'photo') String? avatar,
     ChatMessage? lastMessage,
     @Default(0) int unreadCount,
     @Default([]) List<ChatParticipant> participants,

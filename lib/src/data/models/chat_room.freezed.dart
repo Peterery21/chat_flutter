@@ -25,6 +25,7 @@ mixin _$ChatRoom {
   String get name => throw _privateConstructorUsedError;
   bool get isGroup => throw _privateConstructorUsedError;
   int? get groupId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'photo')
   String? get avatar => throw _privateConstructorUsedError;
   ChatMessage? get lastMessage => throw _privateConstructorUsedError;
   int get unreadCount => throw _privateConstructorUsedError;
@@ -55,7 +56,7 @@ abstract class $ChatRoomCopyWith<$Res> {
     String name,
     bool isGroup,
     int? groupId,
-    String? avatar,
+    @JsonKey(name: 'photo') String? avatar,
     ChatMessage? lastMessage,
     int unreadCount,
     List<ChatParticipant> participants,
@@ -186,7 +187,7 @@ abstract class _$$ChatRoomImplCopyWith<$Res>
     String name,
     bool isGroup,
     int? groupId,
-    String? avatar,
+    @JsonKey(name: 'photo') String? avatar,
     ChatMessage? lastMessage,
     int unreadCount,
     List<ChatParticipant> participants,
@@ -296,7 +297,7 @@ class _$ChatRoomImpl implements _ChatRoom {
     required this.name,
     this.isGroup = false,
     this.groupId,
-    this.avatar,
+    @JsonKey(name: 'photo') this.avatar,
     this.lastMessage,
     this.unreadCount = 0,
     final List<ChatParticipant> participants = const [],
@@ -320,6 +321,7 @@ class _$ChatRoomImpl implements _ChatRoom {
   @override
   final int? groupId;
   @override
+  @JsonKey(name: 'photo')
   final String? avatar;
   @override
   final ChatMessage? lastMessage;
@@ -418,7 +420,7 @@ abstract class _ChatRoom implements ChatRoom {
     required final String name,
     final bool isGroup,
     final int? groupId,
-    final String? avatar,
+    @JsonKey(name: 'photo') final String? avatar,
     final ChatMessage? lastMessage,
     final int unreadCount,
     final List<ChatParticipant> participants,
@@ -441,6 +443,7 @@ abstract class _ChatRoom implements ChatRoom {
   @override
   int? get groupId;
   @override
+  @JsonKey(name: 'photo')
   String? get avatar;
   @override
   ChatMessage? get lastMessage;

@@ -3,6 +3,7 @@ import 'package:stomp_dart_client/stomp_dart_client.dart';
 import '../models/models.dart';
 import '../models/chat_message.dart';
 import '../models/chat_room.dart';
+import 'chat_api_client.dart';
 import 'dart:convert';
 
 /// Typing event from a WebSocket STOMP subscription.
@@ -128,7 +129,7 @@ class ChatStompClient {
         callback: (frame) {
           if (frame.body != null) {
             final rooms = (jsonDecode(frame.body!) as List)
-                .map((e) => ChatRoom.fromJson(e as Map<String, dynamic>))
+                .map((e) => ChatApiClient.parseRoomJson(e as Map<String, dynamic>))
                 .toList();
             controller.add(rooms);
           }

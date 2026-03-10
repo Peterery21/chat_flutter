@@ -23,10 +23,14 @@ ChatMessage _$ChatMessageFromJson(Map<String, dynamic> json) {
 mixin _$ChatMessage {
   int get id => throw _privateConstructorUsedError;
   int get chatRoomId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'chatUserId')
   int get senderId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'sender')
   String? get senderName => throw _privateConstructorUsedError;
+  @JsonKey(name: 'userPhoto')
   String? get senderAvatar => throw _privateConstructorUsedError;
   String get content => throw _privateConstructorUsedError;
+  @JsonKey(name: 'time')
   String get createdAt => throw _privateConstructorUsedError;
   String? get updatedAt => throw _privateConstructorUsedError;
   String? get mediaUrl => throw _privateConstructorUsedError;
@@ -63,11 +67,11 @@ abstract class $ChatMessageCopyWith<$Res> {
   $Res call({
     int id,
     int chatRoomId,
-    int senderId,
-    String? senderName,
-    String? senderAvatar,
+    @JsonKey(name: 'chatUserId') int senderId,
+    @JsonKey(name: 'sender') String? senderName,
+    @JsonKey(name: 'userPhoto') String? senderAvatar,
     String content,
-    String createdAt,
+    @JsonKey(name: 'time') String createdAt,
     String? updatedAt,
     String? mediaUrl,
     String? mediaType,
@@ -226,11 +230,11 @@ abstract class _$$ChatMessageImplCopyWith<$Res>
   $Res call({
     int id,
     int chatRoomId,
-    int senderId,
-    String? senderName,
-    String? senderAvatar,
+    @JsonKey(name: 'chatUserId') int senderId,
+    @JsonKey(name: 'sender') String? senderName,
+    @JsonKey(name: 'userPhoto') String? senderAvatar,
     String content,
-    String createdAt,
+    @JsonKey(name: 'time') String createdAt,
     String? updatedAt,
     String? mediaUrl,
     String? mediaType,
@@ -381,11 +385,11 @@ class _$ChatMessageImpl implements _ChatMessage {
   const _$ChatMessageImpl({
     required this.id,
     required this.chatRoomId,
-    required this.senderId,
-    this.senderName,
-    this.senderAvatar,
+    @JsonKey(name: 'chatUserId') required this.senderId,
+    @JsonKey(name: 'sender') this.senderName,
+    @JsonKey(name: 'userPhoto') this.senderAvatar,
     required this.content,
-    required this.createdAt,
+    @JsonKey(name: 'time') required this.createdAt,
     this.updatedAt,
     this.mediaUrl,
     this.mediaType,
@@ -411,14 +415,18 @@ class _$ChatMessageImpl implements _ChatMessage {
   @override
   final int chatRoomId;
   @override
+  @JsonKey(name: 'chatUserId')
   final int senderId;
   @override
+  @JsonKey(name: 'sender')
   final String? senderName;
   @override
+  @JsonKey(name: 'userPhoto')
   final String? senderAvatar;
   @override
   final String content;
   @override
+  @JsonKey(name: 'time')
   final String createdAt;
   @override
   final String? updatedAt;
@@ -564,11 +572,11 @@ abstract class _ChatMessage implements ChatMessage {
   const factory _ChatMessage({
     required final int id,
     required final int chatRoomId,
-    required final int senderId,
-    final String? senderName,
-    final String? senderAvatar,
+    @JsonKey(name: 'chatUserId') required final int senderId,
+    @JsonKey(name: 'sender') final String? senderName,
+    @JsonKey(name: 'userPhoto') final String? senderAvatar,
     required final String content,
-    required final String createdAt,
+    @JsonKey(name: 'time') required final String createdAt,
     final String? updatedAt,
     final String? mediaUrl,
     final String? mediaType,
@@ -593,14 +601,18 @@ abstract class _ChatMessage implements ChatMessage {
   @override
   int get chatRoomId;
   @override
+  @JsonKey(name: 'chatUserId')
   int get senderId;
   @override
+  @JsonKey(name: 'sender')
   String? get senderName;
   @override
+  @JsonKey(name: 'userPhoto')
   String? get senderAvatar;
   @override
   String get content;
   @override
+  @JsonKey(name: 'time')
   String get createdAt;
   @override
   String? get updatedAt;
