@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import '../config/chat_theme.dart';
 import '../data/api/chat_api_client.dart';
@@ -32,17 +33,23 @@ class ChatModule {
   /// - [authTokenProvider]: async function returning the current Bearer token
   /// - [currentUserId]: ID of the authenticated user
   /// - [currentUserName]: Display name of the authenticated user
-  /// - [theme]: optional [ChatTheme] to customize colors & styles
+  /// - [theme]: optional [ChatTheme] to override colors manually
+  /// - [parentTheme]: optional Flutter [ThemeData] to auto-derive [ChatTheme] from
+  ///   the parent app's color scheme. Ignored if [theme] is also provided.
   static Future<void> init({
     required String baseUrl,
     required Future<String?> Function() authTokenProvider,
     required int currentUserId,
     required String currentUserName,
     ChatTheme theme = ChatTheme.defaultTheme,
+    ThemeData? parentTheme,
   }) async {
     if (_sl.isRegistered<ChatApiClient>()) return; // already initialized
 
-    _sl.registerSingleton<ChatTheme>(theme);
+    final resolvedTheme =
+        parentTheme != null ? ChatTheme.fromThemeData(parentTheme) : theme;
+
+    _sl.registerSingleton<ChatTheme>(resolvedTheme);
     _sl.registerSingleton<_ChatConfig>(
       _ChatConfig(
         baseUrl: baseUrl,
@@ -86,6 +93,7 @@ class ChatModule {
   }
 
   static ChatTheme get theme => _sl<ChatTheme>();
+  static String get baseUrl => _sl<_ChatConfig>().baseUrl;
   static int get currentUserId => _sl<_ChatConfig>().currentUserId;
   static String get currentUserName => _sl<_ChatConfig>().currentUserName;
   static ChatApiClient get api => _sl<ChatApiClient>();

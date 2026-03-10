@@ -39,7 +39,7 @@ class ChatListScreen extends StatelessWidget {
   }
 }
 
-class _ChatListView extends StatelessWidget {
+class _ChatListView extends StatefulWidget {
   const _ChatListView({
     required this.onRoomTap,
     this.onNewChat,
@@ -51,6 +51,20 @@ class _ChatListView extends StatelessWidget {
   final String title;
 
   @override
+  State<_ChatListView> createState() => _ChatListViewState();
+}
+
+class _ChatListViewState extends State<_ChatListView> {
+  String _searchQuery = '';
+  final _searchCtrl = TextEditingController();
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final theme = ChatModule.theme;
 
@@ -58,73 +72,123 @@ class _ChatListView extends StatelessWidget {
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: theme.appBarColor,
-        title: Text(title,
+        title: Text(widget.title,
             style: TextStyle(color: theme.appBarTextColor)),
         iconTheme: IconThemeData(color: theme.appBarTextColor),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.search),
-            onPressed: () {/* TODO: search */ },
-            color: theme.appBarTextColor,
-          ),
-        ],
       ),
-      floatingActionButton: onNewChat != null
+      floatingActionButton: widget.onNewChat != null
           ? FloatingActionButton(
               backgroundColor: theme.primaryColor,
-              onPressed: onNewChat,
+              onPressed: widget.onNewChat,
               child: const Icon(Icons.chat, color: Colors.white),
             )
           : null,
-      body: BlocBuilder<ChatListBloc, ChatListState>(
-        builder: (context, state) {
-          if (state is ChatListLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (state is ChatListError) {
-            return Center(child: Text(state.message));
-          }
-          if (state is ChatListLoaded) {
-            if (state.rooms.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Icon(Icons.chat_bubble_outline,
-                        size: 64, color: Colors.grey.shade300),
-                    const SizedBox(height: 16),
-                    Text('Aucune discussion',
-                        style: TextStyle(color: Colors.grey.shade500)),
-                    if (onNewChat != null) ...[
-                      const SizedBox(height: 8),
-                      TextButton(
-                          onPressed: onNewChat,
-                          child: const Text('Démarrer une discussion')),
-                    ],
-                  ],
+      body: Column(
+        children: [
+          // Search bar
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+            child: TextField(
+              controller: _searchCtrl,
+              onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
+              decoration: InputDecoration(
+                hintText: 'Rechercher...',
+                hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+                filled: true,
+                fillColor: Colors.grey.shade100,
+                contentPadding:
+                    const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                prefixIcon: Icon(Icons.search, color: Colors.grey.shade400, size: 20),
+                suffixIcon: _searchQuery.isNotEmpty
+                    ? IconButton(
+                        icon: Icon(Icons.close, size: 18, color: Colors.grey.shade400),
+                        onPressed: () {
+                          _searchCtrl.clear();
+                          setState(() => _searchQuery = '');
+                        },
+                      )
+                    : null,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: BorderSide.none,
                 ),
-              );
-            }
-            return RefreshIndicator(
-              onRefresh: () async {
-                context
-                    .read<ChatListBloc>()
-                    .add(ChatListLoadRequested(ChatModule.currentUserId));
-              },
-              child: ListView.separated(
-                itemCount: state.rooms.length,
-                separatorBuilder: (_, __) =>
-                    Divider(height: 1, indent: 72, color: Colors.grey.shade200),
-                itemBuilder: (_, i) => _RoomTile(
-                  room: state.rooms[i],
-                  typingUsername: state.typingByRoom[state.rooms[i].id],
-                  onTap: () => onRoomTap(state.rooms[i]),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: BorderSide.none,
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide:
+                      BorderSide(color: theme.primaryColor.withOpacity(0.4)),
                 ),
               ),
-            );
-          }
-          return const SizedBox.shrink();
-        },
+            ),
+          ),
+          Expanded(
+            child: BlocBuilder<ChatListBloc, ChatListState>(
+              builder: (context, state) {
+                if (state is ChatListLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (state is ChatListError) {
+                  return Center(child: Text(state.message));
+                }
+                if (state is ChatListLoaded) {
+                  final rooms = _searchQuery.isEmpty
+                      ? state.rooms
+                      : state.rooms.where((r) {
+                          final name = (r.botId != null
+                                  ? (r.botName ?? r.name)
+                                  : r.name)
+                              .toLowerCase();
+                          return name.contains(_searchQuery);
+                        }).toList();
+
+                  if (rooms.isEmpty) {
+                    return Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(Icons.chat_bubble_outline,
+                              size: 64, color: Colors.grey.shade300),
+                          const SizedBox(height: 16),
+                          Text(
+                            _searchQuery.isNotEmpty
+                                ? 'Aucun résultat'
+                                : 'Aucune discussion',
+                            style: TextStyle(color: Colors.grey.shade500),
+                          ),
+                          if (widget.onNewChat != null &&
+                              _searchQuery.isEmpty) ...[
+                            const SizedBox(height: 8),
+                            TextButton(
+                                onPressed: widget.onNewChat,
+                                child: const Text('Démarrer une discussion')),
+                          ],
+                        ],
+                      ),
+                    );
+                  }
+                  return RefreshIndicator(
+                    onRefresh: () async {
+                      context.read<ChatListBloc>().add(
+                          ChatListLoadRequested(ChatModule.currentUserId));
+                    },
+                    child: ListView.builder(
+                      itemCount: rooms.length,
+                      itemBuilder: (_, i) => _RoomTile(
+                        room: rooms[i],
+                        typingUsername: state.typingByRoom[rooms[i].id],
+                        onTap: () => widget.onRoomTap(rooms[i]),
+                      ),
+                    ),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -148,10 +212,33 @@ class _RoomTile extends StatelessWidget {
 
     return ListTile(
       onTap: onTap,
+      contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       leading: _RoomAvatar(room: room),
-      title: Text(
-        room.name,
-        style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+      title: Row(
+        children: [
+          Flexible(
+            child: Text(
+              room.botId != null ? (room.botName ?? room.name) : room.name,
+              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          if (room.botId != null) ...[
+            const SizedBox(width: 6),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
+              decoration: BoxDecoration(
+                color: const Color(0xFF00897B).withOpacity(0.12),
+                borderRadius: BorderRadius.circular(6),
+              ),
+              child: const Text('IA',
+                  style: TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF00897B))),
+            ),
+          ],
+        ],
       ),
       subtitle: typingUsername != null
           ? Text(
@@ -229,40 +316,59 @@ class _RoomAvatar extends StatelessWidget {
   const _RoomAvatar({required this.room});
   final ChatRoom room;
 
+  static Color _colorFromName(String name) {
+    const colors = [
+      Color(0xFF1976D2), Color(0xFF388E3C), Color(0xFF7B1FA2),
+      Color(0xFFE64A19), Color(0xFF0288D1), Color(0xFF00796B),
+      Color(0xFFC2185B), Color(0xFF5D4037),
+    ];
+    if (name.isEmpty) return colors[0];
+    return colors[name.codeUnitAt(0) % colors.length];
+  }
+
   @override
   Widget build(BuildContext context) {
-    final theme = ChatModule.theme;
+    final displayName =
+        room.botId != null ? (room.botName ?? room.name) : room.name;
+    final avatarColor = room.botId != null
+        ? const Color(0xFF00897B)
+        : _colorFromName(displayName);
+
     return Stack(
       children: [
         CircleAvatar(
           radius: 24,
-          backgroundColor: theme.primaryColor.withOpacity(0.15),
+          backgroundColor: avatarColor.withOpacity(0.15),
           backgroundImage:
               room.avatar != null ? NetworkImage(room.avatar!) : null,
           child: room.avatar == null
-              ? Text(
-                  room.name.isNotEmpty ? room.name[0].toUpperCase() : '?',
-                  style: TextStyle(
-                    color: theme.primaryColor,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                  ),
-                )
+              ? (room.botId != null
+                  ? Icon(Icons.smart_toy, color: avatarColor, size: 24)
+                  : Text(
+                      displayName.isNotEmpty
+                          ? displayName[0].toUpperCase()
+                          : '?',
+                      style: TextStyle(
+                        color: avatarColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ))
               : null,
         ),
-        if (room.botId != null)
+        if (room.isGroup)
           Positioned(
             right: 0,
             bottom: 0,
             child: Container(
-              width: 16,
-              height: 16,
+              width: 14,
+              height: 14,
               decoration: BoxDecoration(
-                color: Colors.blue,
+                color: Colors.grey.shade600,
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.white, width: 1.5),
               ),
-              child: const Icon(Icons.smart_toy, size: 10, color: Colors.white),
+              child: const Icon(Icons.group, size: 8, color: Colors.white),
             ),
           ),
       ],

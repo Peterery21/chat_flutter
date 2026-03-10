@@ -62,7 +62,7 @@ class ChatApiClient {
   // ─── ChatRoom ─────────────────────────────────────────────────────────────
 
   /// Parses a ChatRoom from backend JSON, mapping nested chatUser participants.
-  static ChatRoom _parseRoom(Map<String, dynamic> json) {
+  static ChatRoom parseRoomJson(Map<String, dynamic> json) {
     final rawParticipants = json['participants'] as List<dynamic>?;
     final room = ChatRoom.fromJson(json);
     if (rawParticipants == null || rawParticipants.isEmpty) return room;
@@ -75,7 +75,7 @@ class ChatApiClient {
 
   Future<List<ChatRoom>> getRoomsByUser(int userId) async {
     final res = await _dio.get('/chats/room/byUser/$userId');
-    return (res.data as List).map((e) => _parseRoom(e)).toList();
+    return (res.data as List).map((e) => parseRoomJson(e)).toList();
   }
 
   Future<ChatRoom> createRoom({
@@ -92,7 +92,7 @@ class ChatApiClient {
       if (groupName != null) 'groupName': groupName,
       'participantIds': participantIds,
     });
-    return _parseRoom(res.data as Map<String, dynamic>);
+    return parseRoomJson(res.data as Map<String, dynamic>);
   }
 
   Future<ChatRoom> getRoom(int roomId, int userId) async {
@@ -100,7 +100,7 @@ class ChatApiClient {
       'roomId': roomId,
       'userId': userId,
     });
-    return _parseRoom(res.data as Map<String, dynamic>);
+    return parseRoomJson(res.data as Map<String, dynamic>);
   }
 
   Future<void> addParticipant(int roomId, int userId) async {
@@ -143,7 +143,7 @@ class ChatApiClient {
 
   Future<List<ChatRoom>> getArchivedRooms() async {
     final res = await _dio.get('/chats/rooms/archived');
-    return (res.data as List).map((e) => _parseRoom(e as Map<String, dynamic>)).toList();
+    return (res.data as List).map((e) => parseRoomJson(e as Map<String, dynamic>)).toList();
   }
 
   Future<void> pinMessage(int roomId, int messageId) async {
@@ -327,5 +327,11 @@ class ChatApiClient {
 
   Future<void> toggleBot(int id) async {
     await _dio.patch('/api/chat/bots/$id/toggle');
+  }
+
+  Future<ChatRoom> startBotChat(int botId, int userId) async {
+    final res = await _dio.post('/api/chat/bots/$botId/start-chat',
+        queryParameters: {'userId': userId});
+    return parseRoomJson(res.data as Map<String, dynamic>);
   }
 }

@@ -481,10 +481,24 @@ class _SendButton extends StatelessWidget {
         width: 44,
         height: 44,
         decoration: BoxDecoration(
-          color: theme.primaryColor,
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              theme.primaryColor,
+              theme.primaryColor.withOpacity(0.75),
+            ],
+          ),
           shape: BoxShape.circle,
+          boxShadow: [
+            BoxShadow(
+              color: theme.primaryColor.withOpacity(0.35),
+              blurRadius: 6,
+              offset: const Offset(0, 3),
+            ),
+          ],
         ),
-        child: const Icon(Icons.send, color: Colors.white, size: 20),
+        child: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
       ),
     );
   }

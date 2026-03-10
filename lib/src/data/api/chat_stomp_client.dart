@@ -42,6 +42,9 @@ class ChatStompClient {
   final _typingControllers = <int, StreamController<TypingEvent>>{};
   final _mentionControllers = <int, StreamController<ChatMessage>>{};
 
+  /// Registered subscriptions — replayed on every (re)connect.
+  final _subscriptions = <String, void Function()>{};
+
   Future<void> connect() async {
     final token = await _authTokenProvider();
     final completer = Completer<void>();
@@ -51,6 +54,10 @@ class ChatStompClient {
         url: _wsUrl,
         onConnect: (frame) {
           _connected = true;
+          // Re-establish all subscriptions on every connect (including reconnects)
+          for (final sub in _subscriptions.values) {
+            sub();
+          }
           if (!completer.isCompleted) completer.complete();
         },
         onDisconnect: (_) => _connected = false,
@@ -76,9 +83,18 @@ class ChatStompClient {
     await completer.future.timeout(const Duration(seconds: 15));
   }
 
+  /// Registers a subscription so it is called on connect and every reconnect.
+  /// Skips if already registered for this [topic].
+  void _register(String topic, void Function() subscribe) {
+    if (_subscriptions.containsKey(topic)) return;
+    _subscriptions[topic] = subscribe;
+    if (_connected) subscribe();
+  }
+
   Future<void> disconnect() async {
     _client.deactivate();
     _connected = false;
+    _subscriptions.clear();
     for (final c in _messageControllers.values) {
       await c.close();
     }
@@ -91,6 +107,10 @@ class ChatStompClient {
     for (final c in _mentionControllers.values) {
       await c.close();
     }
+    _messageControllers.clear();
+    _roomListControllers.clear();
+    _typingControllers.clear();
+    _mentionControllers.clear();
   }
 
   /// Stream of new messages for [roomId].
@@ -100,18 +120,22 @@ class ChatStompClient {
       () => StreamController<ChatMessage>.broadcast(),
     );
 
-    if (_connected) {
+    _register('/topic/chat/room/$roomId', () {
       _client.subscribe(
         destination: '/topic/chat/room/$roomId',
         callback: (frame) {
           if (frame.body != null) {
-            final msg = ChatMessage.fromJson(
-                jsonDecode(frame.body!) as Map<String, dynamic>);
-            controller.add(msg);
+            try {
+              final msg = ChatMessage.fromJson(
+                  jsonDecode(frame.body!) as Map<String, dynamic>);
+              controller.add(msg);
+            } catch (e) {
+              // ignore malformed messages silently
+            }
           }
         },
       );
-    }
+    });
 
     return controller.stream;
   }
@@ -123,7 +147,7 @@ class ChatStompClient {
       () => StreamController<List<ChatRoom>>.broadcast(),
     );
 
-    if (_connected) {
+    _register('/queue/chat/user/$userId/rooms', () {
       _client.subscribe(
         destination: '/queue/chat/user/$userId/rooms',
         callback: (frame) {
@@ -135,7 +159,7 @@ class ChatStompClient {
           }
         },
       );
-    }
+    });
 
     return controller.stream;
   }
@@ -147,7 +171,7 @@ class ChatStompClient {
       () => StreamController<TypingEvent>.broadcast(),
     );
 
-    if (_connected) {
+    _register('/topic/chat/room/$roomId/typing', () {
       _client.subscribe(
         destination: '/topic/chat/room/$roomId/typing',
         callback: (frame) {
@@ -155,13 +179,13 @@ class ChatStompClient {
             final data = jsonDecode(frame.body!) as Map<String, dynamic>;
             controller.add(TypingEvent(
               userId: data['userId'] as int,
-              username: data['username'] as String,
+              username: data['username'] as String? ?? '',
               typing: data['typing'] as bool,
             ));
           }
         },
       );
-    }
+    });
 
     return controller.stream;
   }
@@ -173,7 +197,7 @@ class ChatStompClient {
       () => StreamController<ChatMessage>.broadcast(),
     );
 
-    if (_connected) {
+    _register('/queue/chat/user/$userId/mentions', () {
       _client.subscribe(
         destination: '/queue/chat/user/$userId/mentions',
         callback: (frame) {
@@ -184,7 +208,7 @@ class ChatStompClient {
           }
         },
       );
-    }
+    });
 
     return controller.stream;
   }
@@ -219,8 +243,10 @@ class ChatStompClient {
   bool get isConnected => _connected;
 
   static String _toWsUrl(String baseUrl) {
-    return baseUrl
+    final base = baseUrl
         .replaceFirst('https://', 'wss://')
         .replaceFirst('http://', 'ws://');
+    // Use plain WebSocket endpoint (no SockJS) for native mobile clients
+    return '$base/ws-native';
   }
 }

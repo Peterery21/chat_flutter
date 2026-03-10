@@ -211,6 +211,8 @@ class _ChatScreenBodyState extends State<_ChatScreenBody> {
 
   PreferredSizeWidget _buildAppBar(
       BuildContext context, ChatRoom room, theme) {
+    final displayName =
+        room.botId != null ? (room.botName ?? room.name) : room.name;
     return AppBar(
       backgroundColor: theme.appBarColor,
       iconTheme: IconThemeData(color: theme.appBarTextColor),
@@ -220,25 +222,53 @@ class _ChatScreenBodyState extends State<_ChatScreenBody> {
         child: Row(
           children: [
             CircleAvatar(
-              radius: 18,
-              backgroundColor: theme.primaryColor.withOpacity(0.2),
+              radius: 20,
+              backgroundColor: room.botId != null
+                  ? const Color(0xFF00897B).withOpacity(0.2)
+                  : theme.primaryColor.withOpacity(0.2),
               backgroundImage:
                   room.avatar != null ? NetworkImage(room.avatar!) : null,
               child: room.avatar == null
-                  ? Text(room.name[0].toUpperCase(),
-                      style: TextStyle(color: theme.primaryColor))
+                  ? (room.botId != null
+                      ? Icon(Icons.smart_toy,
+                          size: 20, color: const Color(0xFF00897B))
+                      : Text(displayName.isNotEmpty
+                          ? displayName[0].toUpperCase()
+                          : '?',
+                          style: TextStyle(color: theme.primaryColor)))
                   : null,
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 10),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(room.name,
+                Text(displayName,
                     style: TextStyle(
                         color: theme.appBarTextColor,
                         fontSize: 16,
                         fontWeight: FontWeight.w600)),
-                if (room.isGroup)
+                if (room.botId != null)
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 6,
+                        height: 6,
+                        margin: const EdgeInsets.only(right: 4),
+                        decoration: const BoxDecoration(
+                          color: Color(0xFF4CAF50),
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      Text(
+                        'Assistant IA',
+                        style: TextStyle(
+                            color: theme.appBarTextColor.withOpacity(0.8),
+                            fontSize: 12),
+                      ),
+                    ],
+                  )
+                else if (room.isGroup && room.participants.length > 2)
                   Text(
                     '${room.participants.length} membres',
                     style: TextStyle(
@@ -367,13 +397,16 @@ class _DateSeparator extends StatelessWidget {
     return Center(
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
         decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.12),
-          borderRadius: BorderRadius.circular(12),
+          color: Colors.black.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(20),
         ),
         child: Text(label,
-            style: const TextStyle(fontSize: 12, color: Colors.white)),
+            style: const TextStyle(
+                fontSize: 11,
+                color: Colors.black54,
+                fontWeight: FontWeight.w500)),
       ),
     );
   }

@@ -37,6 +37,38 @@ class ChatTheme {
 
   static const ChatTheme defaultTheme = ChatTheme();
 
+  /// Creates a [ChatTheme] that adapts to the parent app's [ThemeData].
+  ///
+  /// Useful to integrate the chat package without manual color overrides:
+  /// ```dart
+  /// await ChatModule.init(
+  ///   ...,
+  ///   parentTheme: Theme.of(context),
+  /// );
+  /// ```
+  factory ChatTheme.fromThemeData(ThemeData theme) {
+    final cs = theme.colorScheme;
+    final isDark = theme.brightness == Brightness.dark;
+    return ChatTheme(
+      primaryColor: cs.primary,
+      appBarColor: cs.primary,
+      appBarTextColor: cs.onPrimary,
+      ownBubbleColor: isDark
+          ? cs.primaryContainer
+          : cs.primaryContainer.withOpacity(0.6),
+      otherBubbleColor: isDark ? cs.surfaceContainerHigh : cs.surface,
+      botBubbleColor: isDark
+          ? cs.secondaryContainer
+          : cs.secondaryContainer.withOpacity(0.5),
+      scaffoldBackgroundColor: theme.scaffoldBackgroundColor,
+      inputBarColor: cs.surface,
+      primaryTextColor: cs.onSurface,
+      secondaryTextColor: cs.onSurface.withOpacity(0.55),
+      unreadBadgeColor: cs.primary,
+      onlineIndicatorColor: cs.primary,
+    );
+  }
+
   ChatTheme copyWith({
     Color? primaryColor,
     Color? ownBubbleColor,

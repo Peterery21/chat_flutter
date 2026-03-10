@@ -1,14 +1,16 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:share_plus/share_plus.dart';
 import '../../config/chat_module.dart';
 import '../../config/chat_theme.dart';
 import '../../data/models/models.dart';
-import 'reaction_picker.dart';
 import 'audio_player_widget.dart';
 import 'video_player_widget.dart';
 import 'file_attachment_widget.dart';
 
 /// Displays a single chat message bubble.
 /// Handles: text, media, reply-to, reactions, bot indicator, delete/edit states.
+/// Long-press shows a Telegram-style contextual popup with copy/share/forward/reply/edit/delete.
 class MessageBubble extends StatelessWidget {
   const MessageBubble({
     super.key,
@@ -33,85 +35,155 @@ class MessageBubble extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = ChatModule.theme;
 
+    if (_isOwn) {
+      return GestureDetector(
+        onLongPressStart: (details) =>
+            _showContextMenu(context, theme, details.globalPosition),
+        child: Align(
+          alignment: Alignment.centerRight,
+          child: ConstrainedBox(
+            constraints: BoxConstraints(
+              maxWidth: MediaQuery.of(context).size.width * 0.75,
+            ),
+            child: _buildBubble(theme),
+          ),
+        ),
+      );
+    }
+
+    // Non-own message: show avatar on the left (Telegram style)
     return GestureDetector(
-      onLongPress: () => _showOptions(context, theme),
-      child: Align(
-        alignment: _isOwn ? Alignment.centerRight : Alignment.centerLeft,
-        child: ConstrainedBox(
-          constraints: BoxConstraints(
-            maxWidth: MediaQuery.of(context).size.width * 0.75,
-          ),
-          child: Container(
-            margin: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: _bubbleColor(theme),
-              borderRadius: BorderRadius.only(
-                topLeft: Radius.circular(theme.bubbleBorderRadius),
-                topRight: Radius.circular(theme.bubbleBorderRadius),
-                bottomLeft: _isOwn
-                    ? Radius.circular(theme.bubbleBorderRadius)
-                    : const Radius.circular(0),
-                bottomRight: _isOwn
-                    ? const Radius.circular(0)
-                    : Radius.circular(theme.bubbleBorderRadius),
-              ),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.06),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
+      onLongPressStart: (details) =>
+          _showContextMenu(context, theme, details.globalPosition),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 2, horizontal: 8),
+        child: Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
+          children: [
+            _InlineAvatar(message: message, theme: theme),
+            const SizedBox(width: 6),
+            Flexible(
+              child: ConstrainedBox(
+                constraints: BoxConstraints(
+                  maxWidth: MediaQuery.of(context).size.width * 0.72,
                 ),
-              ],
+                child: _buildBubble(theme),
+              ),
             ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if (!_isOwn && !message.fromBot) _SenderName(message: message, theme: theme),
-                if (message.fromBot) _BotLabel(message: message, theme: theme),
-                if (message.replyToMessageId != null) _ReplyPreview(message: message, theme: theme),
-                if (message.deleted)
-                  _DeletedText(theme: theme)
-                else ...[
-                  if (message.mediaUrl != null) _MediaContent(message: message, isSender: _isOwn),
-                  _MessageText(message: message, theme: theme),
-                ],
-                _MessageFooter(message: message, theme: theme, isOwn: _isOwn),
-                if (message.reactions.isNotEmpty)
-                  _ReactionsRow(message: message),
-              ],
-            ),
-          ),
+          ],
         ),
       ),
     );
   }
 
+  Widget _buildBubble(ChatTheme theme) {
+    return Container(
+      margin: _isOwn
+          ? const EdgeInsets.only(top: 2, bottom: 2, left: 60, right: 8)
+          : const EdgeInsets.only(top: 2, bottom: 2, left: 0, right: 60),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: _bubbleColor(theme),
+        borderRadius: BorderRadius.only(
+          topLeft: Radius.circular(theme.bubbleBorderRadius),
+          topRight: Radius.circular(theme.bubbleBorderRadius),
+          bottomLeft: _isOwn
+              ? Radius.circular(theme.bubbleBorderRadius)
+              : const Radius.circular(4),
+          bottomRight: _isOwn
+              ? const Radius.circular(4)
+              : Radius.circular(theme.bubbleBorderRadius),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.06),
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (!_isOwn && !message.fromBot) _SenderName(message: message, theme: theme),
+          if (message.fromBot) _BotLabel(message: message, theme: theme),
+          if (message.replyToMessageId != null) _ReplyPreview(message: message, theme: theme),
+          if (message.deleted)
+            _DeletedText(theme: theme)
+          else ...[
+            if (message.mediaUrl != null) _MediaContent(message: message, isSender: _isOwn),
+            _MessageText(message: message, theme: theme),
+          ],
+          _MessageFooter(message: message, theme: theme, isOwn: _isOwn),
+          if (message.reactions.isNotEmpty)
+            _ReactionsRow(message: message),
+        ],
+      ),
+    );
+  }
+
   Color _bubbleColor(ChatTheme theme) {
-    if (message.fromBot) return theme.botBubbleColor;
+    if (message.fromBot) return const Color(0xFFE8F5E9);
     if (_isOwn) return theme.ownBubbleColor;
     return theme.otherBubbleColor;
   }
 
-  void _showOptions(BuildContext context, ChatTheme theme) {
-    showModalBottomSheet(
+  void _showContextMenu(
+      BuildContext context, ChatTheme theme, Offset globalPosition) {
+    final screenSize = MediaQuery.of(context).size;
+    final isUpperHalf = globalPosition.dy < screenSize.height / 2;
+
+    showGeneralDialog(
       context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      barrierDismissible: true,
+      barrierLabel: '',
+      barrierColor: Colors.black54,
+      transitionDuration: const Duration(milliseconds: 180),
+      transitionBuilder: (ctx, anim, _, child) => FadeTransition(
+        opacity: CurvedAnimation(parent: anim, curve: Curves.easeOut),
+        child: ScaleTransition(
+          scale: CurvedAnimation(parent: anim, curve: Curves.easeOutBack),
+          alignment: Alignment.center,
+          child: child,
+        ),
       ),
-      builder: (_) => _MessageOptionsSheet(
+      pageBuilder: (ctx, _, __) => _BubbleContextMenu(
         message: message,
         isOwn: _isOwn,
-        onReply: onReply != null ? () { Navigator.pop(context); onReply!(); } : null,
+        theme: theme,
+        tapPosition: globalPosition,
+        isUpperHalf: isUpperHalf,
+        onReply: onReply != null
+            ? () {
+                Navigator.pop(ctx);
+                onReply!();
+              }
+            : null,
         onEdit: (onEdit != null && _isOwn && !message.deleted)
-            ? () { Navigator.pop(context); onEdit!(); }
+            ? () {
+                Navigator.pop(ctx);
+                onEdit!();
+              }
             : null,
-        onDelete: onDelete != null ? () { Navigator.pop(context); onDelete!(); } : null,
+        onDelete: onDelete != null
+            ? () {
+                Navigator.pop(ctx);
+                onDelete!();
+              }
+            : null,
         onReact: onReact != null
-            ? (emoji) { Navigator.pop(context); onReact!(emoji); }
+            ? (emoji) {
+                Navigator.pop(ctx);
+                onReact!(emoji);
+              }
             : null,
-        onForward: onForward != null ? () { Navigator.pop(context); onForward!(); } : null,
+        onForward: onForward != null
+            ? () {
+                Navigator.pop(ctx);
+                onForward!();
+              }
+            : null,
       ),
     );
   }
@@ -150,17 +222,56 @@ class _BotLabel extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.smart_toy, size: 12, color: theme.primaryColor),
+          Icon(Icons.smart_toy, size: 12, color: const Color(0xFF00897B)),
           const SizedBox(width: 4),
           Text(
             message.botName ?? 'AI',
-            style: TextStyle(
+            style: const TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 12,
-              color: theme.primaryColor,
+              color: Color(0xFF00897B),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+/// Small avatar shown beside non-own messages (Telegram style).
+class _InlineAvatar extends StatelessWidget {
+  const _InlineAvatar({required this.message, required this.theme});
+  final ChatMessage message;
+  final ChatTheme theme;
+
+  static Color _colorFromName(String name) {
+    final colors = [
+      const Color(0xFF1976D2), const Color(0xFF388E3C), const Color(0xFF7B1FA2),
+      const Color(0xFFE64A19), const Color(0xFF0288D1), const Color(0xFF00796B),
+      const Color(0xFFC2185B), const Color(0xFF5D4037),
+    ];
+    if (name.isEmpty) return colors[0];
+    return colors[name.codeUnitAt(0) % colors.length];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (message.fromBot) {
+      return CircleAvatar(
+        radius: 14,
+        backgroundColor: const Color(0xFF00897B).withOpacity(0.15),
+        child: const Icon(Icons.smart_toy, size: 16, color: Color(0xFF00897B)),
+      );
+    }
+    final name = message.senderName ?? '';
+    final color = _colorFromName(name);
+    return CircleAvatar(
+      radius: 14,
+      backgroundColor: color.withOpacity(0.15),
+      child: Text(
+        name.isNotEmpty ? name[0].toUpperCase() : '?',
+        style: TextStyle(
+            fontSize: 12, fontWeight: FontWeight.bold, color: color),
       ),
     );
   }
@@ -214,7 +325,10 @@ class _MediaContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final url = message.mediaUrl!;
+    final rawUrl = message.mediaUrl!;
+    final url = rawUrl.startsWith('http')
+        ? rawUrl
+        : '${ChatModule.baseUrl}/$rawUrl';
     final mediaType = message.mediaType ?? '';
     final filename = url.split('/').last;
 
@@ -374,7 +488,11 @@ class _MessageFooter extends StatelessWidget {
           if (isOwn) ...[
             const SizedBox(width: 4),
             Icon(
-              message.read ? Icons.done_all : Icons.done,
+              message.read
+                  ? Icons.done_all          // lu = double check bleu
+                  : message.id > 0
+                      ? Icons.done_all      // livré (sauvegardé) = double check gris
+                      : Icons.done,         // envoi en cours = simple check gris
               size: 14,
               color: message.read ? Colors.blue : theme.secondaryTextColor,
             ),
@@ -419,10 +537,15 @@ class _ReactionsRow extends StatelessWidget {
   }
 }
 
-class _MessageOptionsSheet extends StatelessWidget {
-  const _MessageOptionsSheet({
+/// Telegram/WhatsApp-style contextual popup menu.
+/// Appears near the bubble with emoji reactions + action buttons.
+class _BubbleContextMenu extends StatelessWidget {
+  const _BubbleContextMenu({
     required this.message,
     required this.isOwn,
+    required this.theme,
+    required this.tapPosition,
+    required this.isUpperHalf,
     this.onReply,
     this.onEdit,
     this.onDelete,
@@ -432,57 +555,201 @@ class _MessageOptionsSheet extends StatelessWidget {
 
   final ChatMessage message;
   final bool isOwn;
+  final ChatTheme theme;
+  final Offset tapPosition;
+  final bool isUpperHalf;
   final VoidCallback? onReply;
   final VoidCallback? onEdit;
   final VoidCallback? onDelete;
   final Function(String emoji)? onReact;
   final VoidCallback? onForward;
 
+  void _copy(BuildContext context) {
+    if (message.content.isNotEmpty) {
+      Clipboard.setData(ClipboardData(text: message.content));
+      Navigator.pop(context);
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Message copié'),
+          duration: Duration(seconds: 2),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    }
+  }
+
+  void _share(BuildContext context) {
+    Navigator.pop(context);
+    if (message.mediaUrl != null) {
+      final uri = Uri.tryParse(message.mediaUrl!);
+      if (uri != null) {
+        Share.shareUri(uri);
+        return;
+      }
+    }
+    final text = message.content.isNotEmpty
+        ? message.content
+        : message.mediaUrl ?? '';
+    if (text.isNotEmpty) Share.share(text);
+  }
+
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
+    final screenWidth = MediaQuery.of(context).size.width;
+    final menuWidth = (screenWidth * 0.52).clamp(200.0, 260.0);
+    final leftOffset = isOwn
+        ? (screenWidth - menuWidth - 12).clamp(0.0, screenWidth)
+        : 12.0;
+
+    return Material(
+      type: MaterialType.transparency,
+      child: Stack(
+        children: [
+          // Positioned menu card
+          Positioned(
+            left: leftOffset,
+            top: isUpperHalf ? tapPosition.dy + 8 : null,
+            bottom: isUpperHalf
+                ? null
+                : MediaQuery.of(context).size.height - tapPosition.dy + 8,
+            child: SizedBox(
+              width: menuWidth,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment:
+                    isOwn ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                children: [
+                  // Emoji reactions pill
+                  if (onReact != null) ...[
+                    _ReactionsPill(onReact: onReact!, theme: theme),
+                    const SizedBox(height: 6),
+                  ],
+                  // Action buttons card
+                  Card(
+                    elevation: 8,
+                    shadowColor: Colors.black38,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(14),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: _buildActions(context),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _buildActions(BuildContext context) {
+    final actions = <_MenuAction>[];
+
+    if (onReply != null) {
+      actions.add(_MenuAction(
+        icon: Icons.reply_rounded,
+        label: 'Répondre',
+        onTap: onReply!,
+      ));
+    }
+
+    if (!message.deleted && message.content.isNotEmpty) {
+      actions.add(_MenuAction(
+        icon: Icons.copy_rounded,
+        label: 'Copier',
+        onTap: () => _copy(context),
+      ));
+    }
+
+    if (!message.deleted) {
+      actions.add(_MenuAction(
+        icon: Icons.share_rounded,
+        label: 'Partager',
+        onTap: () => _share(context),
+      ));
+    }
+
+    if (onForward != null && !message.deleted) {
+      actions.add(_MenuAction(
+        icon: Icons.forward_rounded,
+        label: 'Transférer',
+        onTap: onForward!,
+      ));
+    }
+
+    if (onEdit != null) {
+      actions.add(_MenuAction(
+        icon: Icons.edit_rounded,
+        label: 'Modifier',
+        onTap: onEdit!,
+      ));
+    }
+
+    if (onDelete != null) {
+      actions.add(_MenuAction(
+        icon: Icons.delete_outline_rounded,
+        label: isOwn ? 'Supprimer' : 'Supprimer pour moi',
+        color: Colors.red,
+        onTap: onDelete!,
+      ));
+    }
+
+    final widgets = <Widget>[];
+    for (int i = 0; i < actions.length; i++) {
+      widgets.add(_ActionTile(action: actions[i]));
+      if (i < actions.length - 1) {
+        widgets.add(const Divider(height: 1, thickness: 0.5, indent: 48));
+      }
+    }
+    return widgets;
+  }
+}
+
+class _ReactionsPill extends StatelessWidget {
+  const _ReactionsPill({required this.onReact, required this.theme});
+  final Function(String) onReact;
+  final ChatTheme theme;
+
+  static const _emojis = ['👍', '❤️', '😂', '😮', '😢', '🙏'];
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(30),
+        boxShadow: const [
+          BoxShadow(color: Colors.black26, blurRadius: 8, offset: Offset(0, 3))
+        ],
+      ),
+      child: SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        child: Row(
           mainAxisSize: MainAxisSize.min,
-          children: [
-            if (onReact != null)
-              ReactionPicker(onReact: onReact!),
-            const SizedBox(height: 8),
-            if (onReply != null)
-              _OptionTile(
-                icon: Icons.reply,
-                label: 'Répondre',
-                onTap: onReply!,
+          children: _emojis.map((emoji) {
+            return GestureDetector(
+              onTap: () => onReact(emoji),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 5),
+                child: Text(emoji, style: const TextStyle(fontSize: 22)),
               ),
-            if (onEdit != null)
-              _OptionTile(
-                icon: Icons.edit,
-                label: 'Modifier',
-                onTap: onEdit!,
-              ),
-            if (onForward != null)
-              _OptionTile(
-                icon: Icons.forward,
-                label: 'Transférer',
-                onTap: onForward!,
-              ),
-            if (onDelete != null)
-              _OptionTile(
-                icon: Icons.delete,
-                label: isOwn ? 'Supprimer' : 'Supprimer pour moi',
-                color: Colors.red,
-                onTap: onDelete!,
-              ),
-          ],
+            );
+          }).toList(),
         ),
       ),
     );
   }
 }
 
-class _OptionTile extends StatelessWidget {
-  const _OptionTile({
+class _MenuAction {
+  const _MenuAction({
     required this.icon,
     required this.label,
     required this.onTap,
@@ -492,14 +759,30 @@ class _OptionTile extends StatelessWidget {
   final String label;
   final VoidCallback onTap;
   final Color? color;
+}
+
+class _ActionTile extends StatelessWidget {
+  const _ActionTile({required this.action});
+  final _MenuAction action;
 
   @override
   Widget build(BuildContext context) {
-    return ListTile(
-      leading: Icon(icon, color: color),
-      title: Text(label, style: TextStyle(color: color)),
-      onTap: onTap,
-      contentPadding: EdgeInsets.zero,
+    final color = action.color ?? Theme.of(context).textTheme.bodyLarge?.color;
+    return InkWell(
+      onTap: action.onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        child: Row(
+          children: [
+            Icon(action.icon, size: 20, color: color),
+            const SizedBox(width: 14),
+            Text(
+              action.label,
+              style: TextStyle(fontSize: 15, color: color),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

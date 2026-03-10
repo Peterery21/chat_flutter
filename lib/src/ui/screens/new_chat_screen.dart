@@ -24,7 +24,7 @@ class _NewChatScreenState extends State<NewChatScreen>
   @override
   void initState() {
     super.initState();
-    _tabs = TabController(length: 2, vsync: this);
+    _tabs = TabController(length: 3, vsync: this);
     _tabs.addListener(() => setState(() => _isGroup = _tabs.index == 1));
   }
 
@@ -99,6 +99,7 @@ class _NewChatScreenState extends State<NewChatScreen>
           tabs: const [
             Tab(text: 'Direct'),
             Tab(text: 'Groupe'),
+            Tab(text: 'Bots'),
           ],
         ),
         actions: [
@@ -111,7 +112,7 @@ class _NewChatScreenState extends State<NewChatScreen>
                   child: CircularProgressIndicator(
                       strokeWidth: 2, color: Colors.white)),
             )
-          else
+          else if (_tabs.index != 2)
             TextButton(
               onPressed: _create,
               child: Text('Créer',
@@ -154,6 +155,7 @@ class _NewChatScreenState extends State<NewChatScreen>
               });
             },
           ),
+          _BotTab(onRoomCreated: widget.onRoomCreated),
         ],
       ),
     );
@@ -428,6 +430,132 @@ class _MemberSearchFieldState extends State<_MemberSearchField> {
           ),
         ),
       ],
+    );
+  }
+}
+
+// ─── Bot Tab ─────────────────────────────────────────────────────────────────
+
+class _BotTab extends StatefulWidget {
+  const _BotTab({required this.onRoomCreated});
+  final Function(ChatRoom room) onRoomCreated;
+
+  @override
+  State<_BotTab> createState() => _BotTabState();
+}
+
+class _BotTabState extends State<_BotTab> {
+  List<ChatBot> _bots = [];
+  bool _loading = true;
+  String? _error;
+  int? _starting;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    try {
+      final bots = await ChatModule.api.getBots();
+      if (mounted) setState(() {
+        _bots = bots.where((b) => b.active).toList();
+        _loading = false;
+      });
+    } catch (e) {
+      if (mounted) setState(() {
+        _error = e.toString();
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _start(ChatBot bot) async {
+    if (_starting != null) return;
+    setState(() => _starting = bot.id);
+    try {
+      final room = await ChatModule.api.startBotChat(
+          bot.id, ChatModule.currentUserId);
+      if (mounted) widget.onRoomCreated(room);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text(e.toString())));
+        setState(() => _starting = null);
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = ChatModule.theme;
+
+    if (_loading) return const Center(child: CircularProgressIndicator());
+    if (_error != null) return Center(child: Text(_error!));
+    if (_bots.isEmpty) {
+      return const Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(Icons.smart_toy_outlined, size: 56, color: Colors.grey),
+            SizedBox(height: 12),
+            Text('Aucun bot disponible',
+                style: TextStyle(color: Colors.grey)),
+          ],
+        ),
+      );
+    }
+
+    return ListView.separated(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      itemCount: _bots.length,
+      separatorBuilder: (_, __) =>
+          const Divider(height: 1, indent: 72),
+      itemBuilder: (_, i) {
+        final bot = _bots[i];
+        final isStarting = _starting == bot.id;
+        return ListTile(
+          leading: CircleAvatar(
+            radius: 24,
+            backgroundColor: const Color(0xFF00897B).withOpacity(0.15),
+            child: isStarting
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                        strokeWidth: 2, color: Color(0xFF00897B)))
+                : Icon(Icons.smart_toy,
+                    color: const Color(0xFF00897B), size: 26),
+          ),
+          title: Text(bot.name,
+              style: const TextStyle(
+                  fontWeight: FontWeight.w600, fontSize: 15)),
+          subtitle: bot.topicDescription != null
+              ? Text(bot.topicDescription!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                      fontSize: 13, color: theme.secondaryTextColor))
+              : Text('Assistant IA',
+                  style: TextStyle(
+                      fontSize: 13, color: theme.secondaryTextColor)),
+          trailing: Container(
+            padding:
+                const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+            decoration: BoxDecoration(
+              color: theme.primaryColor,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            child: Text('Démarrer',
+                style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600)),
+          ),
+          onTap: isStarting ? null : () => _start(bot),
+        );
+      },
     );
   }
 }
