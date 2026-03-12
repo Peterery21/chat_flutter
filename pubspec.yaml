@@ -1,6 +1,6 @@
 name: chat_flutter
 description: "A reusable Flutter chat package — integrates with chat-api (Spring Boot). Supports 1:1, group chats, AI bots, WebSocket STOMP real-time."
-version: 0.1.0
+version: 0.1.1
 homepage: https://github.com/kodzotech/chat_flutter
 
 environment:

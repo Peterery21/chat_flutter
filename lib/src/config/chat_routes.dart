@@ -19,6 +19,8 @@ import '../ui/screens/new_chat_screen.dart';
 /// Parameters:
 /// - [chatsPath]: base path for the chat list (default: `/chats`)
 /// - [newChatPath]: path for creating a new chat (default: `/new-chat`)
+/// - [showNewChatButton]: whether to show the FloatingActionButton to create a
+///   new chat on [ChatListScreen] (default: `true`)
 ///
 /// Generated routes:
 /// - `chatsPath`                     → [ChatListScreen]
@@ -31,6 +33,7 @@ import '../ui/screens/new_chat_screen.dart';
 List<RouteBase> chatGoRoutes({
   String chatsPath = '/chats',
   String newChatPath = '/new-chat',
+  bool showNewChatButton = true,
 }) {
   return [
     GoRoute(
@@ -38,7 +41,7 @@ List<RouteBase> chatGoRoutes({
       builder: (context, state) => ChatListScreen(
         onRoomTap: (room) =>
             context.push('$chatsPath/${room.id}', extra: room),
-        onNewChat: () => context.push(newChatPath),
+        onNewChat: showNewChatButton ? () => context.push(newChatPath) : null,
       ),
     ),
     GoRoute(
