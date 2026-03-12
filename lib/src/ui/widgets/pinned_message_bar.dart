@@ -26,9 +26,9 @@ class PinnedMessageBar extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.white,
+          color: theme.surfaceColor,
           border: Border(
-            bottom: BorderSide(color: Colors.grey.shade200),
+            bottom: BorderSide(color: theme.dividerColor),
             left: BorderSide(color: theme.primaryColor, width: 3),
           ),
         ),

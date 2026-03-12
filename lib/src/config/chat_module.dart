@@ -66,6 +66,8 @@ class ChatModule {
       ChatApiClient(
         baseUrl: baseUrl,
         authTokenProvider: authTokenProvider,
+        currentUserId: currentUserId,
+        currentUserName: currentUserName,
         onUnauthorized: onUnauthorized,
       ),
     );

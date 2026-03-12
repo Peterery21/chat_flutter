@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../config/chat_module.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 /// Widget that displays a file attachment (PDF, Word, Excel, etc.)
@@ -43,7 +44,7 @@ class FileAttachmentWidget extends StatelessWidget {
       filename.contains('.') ? filename.split('.').last.toLowerCase() : '';
 
   Color get _iconColor =>
-      _extensionColors[_extension] ?? Colors.grey[600]!;
+      _extensionColors[_extension] ?? ChatModule.theme.hintColor;
 
   IconData get _icon =>
       _extensionIcons[_extension] ?? Icons.insert_drive_file;
@@ -57,11 +58,12 @@ class FileAttachmentWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final textColor = isSender ? Colors.white : Colors.black87;
-    final subTextColor = isSender ? Colors.white70 : Colors.grey[600]!;
+    final theme = ChatModule.theme;
+    final textColor = isSender ? theme.appBarTextColor : theme.primaryTextColor;
+    final subTextColor = isSender ? theme.appBarTextColor.withOpacity(0.7) : theme.hintColor;
     final bgColor = isSender
-        ? Colors.white.withOpacity(0.15)
-        : Colors.grey.withOpacity(0.1);
+        ? theme.appBarTextColor.withOpacity(0.15)
+        : theme.hintColor.withOpacity(0.1);
 
     return GestureDetector(
       onTap: _open,

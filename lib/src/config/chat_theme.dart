@@ -18,6 +18,14 @@ class ChatTheme {
     this.inputBarColor = const Color(0xFFFFFFFF),
     this.unreadBadgeColor = const Color(0xFF25D366),
     this.onlineIndicatorColor = const Color(0xFF25D366),
+    this.errorColor = const Color(0xFFD32F2F),
+    this.warningColor = const Color(0xFFF57C00),
+    this.botIndicatorColor = const Color(0xFF00897B),
+    this.avatarColors = _defaultAvatarColors,
+    this.surfaceColor = const Color(0xFFFFFFFF),
+    this.dividerColor = const Color(0xFFE0E0E0),
+    this.hintColor = const Color(0xFF9E9E9E),
+    this.inputFillColor = const Color(0xFFF5F5F5),
   });
 
   final Color primaryColor;
@@ -35,7 +43,42 @@ class ChatTheme {
   final Color unreadBadgeColor;
   final Color onlineIndicatorColor;
 
+  /// Color used for destructive/error actions (delete, error messages).
+  final Color errorColor;
+
+  /// Color used for warning actions (leave group, etc.).
+  final Color warningColor;
+
+  /// Accent color for bot badges, bot avatars and bot indicators.
+  final Color botIndicatorColor;
+
+  /// Color palette used to generate user avatar backgrounds.
+  final List<Color> avatarColors;
+
+  /// Surface/card color for containers, overlays and cards.
+  final Color surfaceColor;
+
+  /// Color for dividers and subtle borders.
+  final Color dividerColor;
+
+  /// Color for hints, placeholders and empty-state icons/text.
+  final Color hintColor;
+
+  /// Fill color for text input fields.
+  final Color inputFillColor;
+
   static const ChatTheme defaultTheme = ChatTheme();
+
+  static const List<Color> _defaultAvatarColors = [
+    Color(0xFF1976D2),
+    Color(0xFF388E3C),
+    Color(0xFF7B1FA2),
+    Color(0xFFE64A19),
+    Color(0xFF0288D1),
+    Color(0xFF00796B),
+    Color(0xFFC2185B),
+    Color(0xFF5D4037),
+  ];
 
   /// Creates a [ChatTheme] that adapts to the parent app's [ThemeData].
   ///
@@ -66,6 +109,16 @@ class ChatTheme {
       secondaryTextColor: cs.onSurface.withOpacity(0.55),
       unreadBadgeColor: cs.primary,
       onlineIndicatorColor: cs.primary,
+      errorColor: cs.error,
+      warningColor: const Color(0xFFF57C00),
+      botIndicatorColor: cs.secondary,
+      avatarColors: _defaultAvatarColors,
+      surfaceColor: cs.surface,
+      dividerColor: theme.dividerColor,
+      hintColor: theme.hintColor,
+      inputFillColor: isDark
+          ? cs.surfaceContainerHighest
+          : cs.surfaceContainerHighest.withOpacity(0.6),
     );
   }
 
@@ -84,6 +137,14 @@ class ChatTheme {
     Color? inputBarColor,
     Color? unreadBadgeColor,
     Color? onlineIndicatorColor,
+    Color? errorColor,
+    Color? warningColor,
+    Color? botIndicatorColor,
+    List<Color>? avatarColors,
+    Color? surfaceColor,
+    Color? dividerColor,
+    Color? hintColor,
+    Color? inputFillColor,
   }) {
     return ChatTheme(
       primaryColor: primaryColor ?? this.primaryColor,
@@ -101,6 +162,14 @@ class ChatTheme {
       inputBarColor: inputBarColor ?? this.inputBarColor,
       unreadBadgeColor: unreadBadgeColor ?? this.unreadBadgeColor,
       onlineIndicatorColor: onlineIndicatorColor ?? this.onlineIndicatorColor,
+      errorColor: errorColor ?? this.errorColor,
+      warningColor: warningColor ?? this.warningColor,
+      botIndicatorColor: botIndicatorColor ?? this.botIndicatorColor,
+      avatarColors: avatarColors ?? this.avatarColors,
+      surfaceColor: surfaceColor ?? this.surfaceColor,
+      dividerColor: dividerColor ?? this.dividerColor,
+      hintColor: hintColor ?? this.hintColor,
+      inputFillColor: inputFillColor ?? this.inputFillColor,
     );
   }
 }

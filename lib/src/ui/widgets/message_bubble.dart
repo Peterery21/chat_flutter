@@ -124,7 +124,7 @@ class MessageBubble extends StatelessWidget {
   }
 
   Color _bubbleColor(ChatTheme theme) {
-    if (message.fromBot) return const Color(0xFFE8F5E9);
+    if (message.fromBot) return theme.botBubbleColor;
     if (_isOwn) return theme.ownBubbleColor;
     return theme.otherBubbleColor;
   }
@@ -222,14 +222,14 @@ class _BotLabel extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(Icons.smart_toy, size: 12, color: const Color(0xFF00897B)),
+          Icon(Icons.smart_toy, size: 12, color: theme.botIndicatorColor),
           const SizedBox(width: 4),
           Text(
             message.botName ?? 'AI',
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.bold,
               fontSize: 12,
-              color: Color(0xFF00897B),
+              color: theme.botIndicatorColor,
             ),
           ),
         ],
@@ -244,12 +244,7 @@ class _InlineAvatar extends StatelessWidget {
   final ChatMessage message;
   final ChatTheme theme;
 
-  static Color _colorFromName(String name) {
-    final colors = [
-      const Color(0xFF1976D2), const Color(0xFF388E3C), const Color(0xFF7B1FA2),
-      const Color(0xFFE64A19), const Color(0xFF0288D1), const Color(0xFF00796B),
-      const Color(0xFFC2185B), const Color(0xFF5D4037),
-    ];
+  static Color _colorFromName(String name, List<Color> colors) {
     if (name.isEmpty) return colors[0];
     return colors[name.codeUnitAt(0) % colors.length];
   }
@@ -259,12 +254,12 @@ class _InlineAvatar extends StatelessWidget {
     if (message.fromBot) {
       return CircleAvatar(
         radius: 14,
-        backgroundColor: const Color(0xFF00897B).withOpacity(0.15),
-        child: const Icon(Icons.smart_toy, size: 16, color: Color(0xFF00897B)),
+        backgroundColor: theme.botIndicatorColor.withOpacity(0.15),
+        child: Icon(Icons.smart_toy, size: 16, color: theme.botIndicatorColor),
       );
     }
     final name = message.senderName ?? '';
-    final color = _colorFromName(name);
+    final color = _colorFromName(name, theme.avatarColors);
     return CircleAvatar(
       radius: 14,
       backgroundColor: color.withOpacity(0.15),
@@ -288,7 +283,7 @@ class _ReplyPreview extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 6),
       padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.08),
+        color: theme.primaryTextColor.withOpacity(0.08),
         borderRadius: BorderRadius.circular(8),
         border: Border(
           left: BorderSide(color: theme.primaryColor, width: 3),
@@ -494,7 +489,7 @@ class _MessageFooter extends StatelessWidget {
                       ? Icons.done_all      // livré (sauvegardé) = double check gris
                       : Icons.done,         // envoi en cours = simple check gris
               size: 14,
-              color: message.read ? Colors.blue : theme.secondaryTextColor,
+              color: message.read ? theme.primaryColor : theme.secondaryTextColor,
             ),
           ],
         ],
@@ -518,6 +513,7 @@ class _ReactionsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = ChatModule.theme;
     return Padding(
       padding: const EdgeInsets.only(top: 4),
       child: Wrap(
@@ -526,7 +522,7 @@ class _ReactionsRow extends StatelessWidget {
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
             decoration: BoxDecoration(
-              color: Colors.black.withOpacity(0.08),
+              color: theme.primaryTextColor.withOpacity(0.08),
               borderRadius: BorderRadius.circular(12),
             ),
             child: Text('${r.emoji} ${r.count}', style: const TextStyle(fontSize: 12)),
@@ -695,7 +691,7 @@ class _BubbleContextMenu extends StatelessWidget {
       actions.add(_MenuAction(
         icon: Icons.delete_outline_rounded,
         label: isOwn ? 'Supprimer' : 'Supprimer pour moi',
-        color: Colors.red,
+        color: theme.errorColor,
         onTap: onDelete!,
       ));
     }

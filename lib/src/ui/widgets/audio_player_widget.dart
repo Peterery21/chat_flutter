@@ -1,4 +1,5 @@
 import 'package:audioplayers/audioplayers.dart';
+import '../../config/chat_module.dart';
 import 'package:flutter/material.dart';
 
 /// Compact audio player widget displayed inside a message bubble.
@@ -70,10 +71,9 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
   @override
   Widget build(BuildContext context) {
     final isPlaying = _playerState == PlayerState.playing;
-    final accent = widget.isSender ? Colors.white : const Color(0xFF075E54);
-    final trackColor = widget.isSender
-        ? Colors.white.withOpacity(0.4)
-        : Colors.grey.withOpacity(0.3);
+    final theme = ChatModule.theme;
+    final accent = theme.primaryColor;
+    final trackColor = theme.hintColor.withOpacity(0.3);
 
     return SizedBox(
       width: 220,
@@ -127,9 +127,7 @@ class _AudioPlayerWidgetState extends State<AudioPlayerWidget> {
                             : '0:00',
                     style: TextStyle(
                       fontSize: 11,
-                      color: widget.isSender
-                          ? Colors.white.withOpacity(0.8)
-                          : Colors.grey[600],
+                      color: theme.secondaryTextColor,
                     ),
                   ),
                 ),

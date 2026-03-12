@@ -175,19 +175,19 @@ class _ChatInputBarState extends State<ChatInputBar> {
               _AttachOption(
                 icon: Icons.photo_library,
                 label: 'Gallery',
-                color: const Color(0xFF6A1B9A),
+                color: theme.primaryColor,
                 onTap: _pickFromGallery,
               ),
               _AttachOption(
                 icon: Icons.videocam,
                 label: 'Video',
-                color: const Color(0xFFE53935),
+                color: theme.errorColor,
                 onTap: _pickVideo,
               ),
               _AttachOption(
                 icon: Icons.attach_file,
                 label: 'Document',
-                color: const Color(0xFF1565C0),
+                color: theme.botIndicatorColor,
                 onTap: _pickFile,
               ),
             ],
@@ -251,7 +251,6 @@ class _ChatInputBarState extends State<ChatInputBar> {
     // Voice recording mode — replaces the entire bar
     if (_isRecording) {
       return VoiceRecorderBar(
-        primaryColor: theme.primaryColor,
         onSend: _onVoiceSend,
         onCancel: _onVoiceCancel,
       );
@@ -272,7 +271,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
           Container(
             constraints: const BoxConstraints(maxHeight: 180),
             decoration: BoxDecoration(
-              color: Colors.white,
+              color: theme.surfaceColor,
               boxShadow: [
                 BoxShadow(
                   color: Colors.black.withOpacity(0.1),
@@ -307,7 +306,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
         if (widget.replyToMessage != null)
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            color: Colors.grey.shade100,
+            color: theme.inputFillColor,
             child: Row(
               children: [
                 Container(width: 3, height: 36, color: theme.primaryColor),
@@ -345,7 +344,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
         // Media preview
         if (_selectedMedia != null)
           Container(
-            color: Colors.grey.shade100,
+            color: theme.inputFillColor,
             padding: const EdgeInsets.fromLTRB(12, 6, 12, 4),
             child: Row(
               children: [
@@ -359,14 +358,14 @@ class _ChatInputBarState extends State<ChatInputBar> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: theme.surfaceColor,
                       borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.grey.shade300),
+                      border: Border.all(color: theme.dividerColor),
                     ),
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(_fileIcon(_mediaFilename), color: Colors.grey[700]),
+                        Icon(_fileIcon(_mediaFilename), color: theme.secondaryTextColor),
                         const SizedBox(width: 6),
                         ConstrainedBox(
                           constraints: const BoxConstraints(maxWidth: 160),
@@ -420,7 +419,7 @@ class _ChatInputBarState extends State<ChatInputBar> {
                       borderSide: BorderSide.none,
                     ),
                     filled: true,
-                    fillColor: Colors.grey.shade100,
+                    fillColor: theme.inputFillColor,
                     contentPadding: const EdgeInsets.symmetric(
                       horizontal: 16,
                       vertical: 10,
@@ -498,7 +497,7 @@ class _SendButton extends StatelessWidget {
             ),
           ],
         ),
-        child: const Icon(Icons.send_rounded, color: Colors.white, size: 20),
+        child: Icon(Icons.send_rounded, color: theme.appBarTextColor, size: 20),
       ),
     );
   }
@@ -518,12 +517,13 @@ class _AttachOption extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = ChatModule.theme;
     return ListTile(
       leading: Container(
         width: 40,
         height: 40,
         decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-        child: Icon(icon, color: Colors.white, size: 20),
+        child: Icon(icon, color: theme.appBarTextColor, size: 20),
       ),
       title: Text(label),
       onTap: onTap,

@@ -15,8 +15,12 @@ class ChatApiClient {
   ChatApiClient({
     required String baseUrl,
     required Future<String?> Function() authTokenProvider,
+    required int currentUserId,
+    required String currentUserName,
     Future<String?> Function()? onUnauthorized,
-  }) : _baseUrl = baseUrl {
+  })  : _baseUrl = baseUrl,
+        _currentUserId = currentUserId,
+        _currentUserName = currentUserName {
     _dio = Dio(
       BaseOptions(
         baseUrl: baseUrl,
@@ -56,6 +60,8 @@ class ChatApiClient {
   }
 
   final String _baseUrl;
+  final int _currentUserId;
+  final String _currentUserName;
   late final Dio _dio;
 
   // ─── ChatUser ────────────────────────────────────────────────────────────
@@ -349,8 +355,20 @@ class ChatApiClient {
   }
 
   Future<ChatRoom> startBotChat(int botId, int userId) async {
+    // Auto-sync the current user in the chat system before starting the bot session.
+    // This ensures a ChatUser record exists even if the parent app hasn't called
+    // createOrUpdateUser explicitly (e.g. on first bot usage after signup).
+    await createOrUpdateUser(
+      userId: _currentUserId,
+      username: _currentUserName,
+    );
     final res = await _dio.post('/api/chat/bots/$botId/start-chat',
         queryParameters: {'userId': userId});
     return parseRoomJson(res.data as Map<String, dynamic>);
+  }
+
+  Future<ChatBot> getPrimaryBot() async {
+    final res = await _dio.get('/api/chat/bots/primary');
+    return ChatBot.fromJson(res.data as Map<String, dynamic>);
   }
 }

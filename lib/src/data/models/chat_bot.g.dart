@@ -21,6 +21,7 @@ _$ChatBotImpl _$$ChatBotImplFromJson(Map<String, dynamic> json) =>
               ?.map((e) => e as String)
               .toList() ??
           const [],
+      isPrimary: json['isPrimary'] as bool? ?? false,
     );
 
 Map<String, dynamic> _$$ChatBotImplToJson(_$ChatBotImpl instance) =>
@@ -34,4 +35,5 @@ Map<String, dynamic> _$$ChatBotImplToJson(_$ChatBotImpl instance) =>
       'topicDescription': instance.topicDescription,
       'knowledgeBaseId': instance.knowledgeBaseId,
       'toolNames': instance.toolNames,
+      'isPrimary': instance.isPrimary,
     };

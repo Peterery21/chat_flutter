@@ -224,14 +224,14 @@ class _ChatScreenBodyState extends State<_ChatScreenBody> {
             CircleAvatar(
               radius: 20,
               backgroundColor: room.botId != null
-                  ? const Color(0xFF00897B).withOpacity(0.2)
+                  ? theme.botIndicatorColor.withOpacity(0.2)
                   : theme.primaryColor.withOpacity(0.2),
               backgroundImage:
                   room.avatar != null ? NetworkImage(room.avatar!) : null,
               child: room.avatar == null
                   ? (room.botId != null
                       ? Icon(Icons.smart_toy,
-                          size: 20, color: const Color(0xFF00897B))
+                          size: 20, color: theme.botIndicatorColor)
                       : Text(displayName.isNotEmpty
                           ? displayName[0].toUpperCase()
                           : '?',
@@ -255,8 +255,8 @@ class _ChatScreenBodyState extends State<_ChatScreenBody> {
                         width: 6,
                         height: 6,
                         margin: const EdgeInsets.only(right: 4),
-                        decoration: const BoxDecoration(
-                          color: Color(0xFF4CAF50),
+                        decoration: BoxDecoration(
+                          color: theme.onlineIndicatorColor,
                           shape: BoxShape.circle,
                         ),
                       ),
@@ -344,8 +344,8 @@ class _ChatScreenBodyState extends State<_ChatScreenBody> {
                     ChatRoomDeleteMessage(messageId: msg.id, forAll: true));
                 Navigator.pop(context);
               },
-              child: const Text('Pour tout le monde',
-                  style: TextStyle(color: Colors.red)),
+              child: Text('Pour tout le monde',
+                  style: TextStyle(color: ChatModule.theme.errorColor)),
             ),
           TextButton(
             onPressed: () {
@@ -353,7 +353,7 @@ class _ChatScreenBodyState extends State<_ChatScreenBody> {
                   ChatRoomDeleteMessage(messageId: msg.id, forAll: false));
               Navigator.pop(context);
             },
-            child: const Text('Pour moi', style: TextStyle(color: Colors.red)),
+            child: Text('Pour moi', style: TextStyle(color: ChatModule.theme.errorColor)),
           ),
         ],
       ),
@@ -395,19 +395,22 @@ class _DateSeparator extends StatelessWidget {
     }
 
     return Center(
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 8),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
-        decoration: BoxDecoration(
-          color: Colors.black.withOpacity(0.08),
-          borderRadius: BorderRadius.circular(20),
-        ),
-        child: Text(label,
-            style: const TextStyle(
-                fontSize: 11,
-                color: Colors.black54,
-                fontWeight: FontWeight.w500)),
-      ),
+      child: Builder(builder: (context) {
+        final theme = ChatModule.theme;
+        return Container(
+          margin: const EdgeInsets.symmetric(vertical: 8),
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
+          decoration: BoxDecoration(
+            color: theme.primaryTextColor.withOpacity(0.08),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Text(label,
+              style: TextStyle(
+                  fontSize: 11,
+                  color: theme.primaryTextColor.withOpacity(0.54),
+                  fontWeight: FontWeight.w500)),
+        );
+      }),
     );
   }
 }

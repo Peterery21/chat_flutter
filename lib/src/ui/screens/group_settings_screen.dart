@@ -57,6 +57,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
   }
 
   Future<void> _kickMember(ChatParticipant p) async {
+    final theme = ChatModule.theme;
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
@@ -68,7 +69,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
           TextButton(
               onPressed: () => Navigator.pop(context, true),
               child:
-                  const Text('Retirer', style: TextStyle(color: Colors.red))),
+                  Text('Retirer', style: TextStyle(color: theme.errorColor))),
         ],
       ),
     );
@@ -96,6 +97,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
   }
 
   Future<void> _leave() async {
+    final theme = ChatModule.theme;
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
@@ -106,8 +108,8 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
               child: const Text('Annuler')),
           TextButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Quitter',
-                  style: TextStyle(color: Colors.orange))),
+              child: Text('Quitter',
+                  style: TextStyle(color: theme.warningColor))),
         ],
       ),
     );
@@ -118,6 +120,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
   }
 
   Future<void> _delete() async {
+    final theme = ChatModule.theme;
     final ok = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
@@ -129,8 +132,8 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
               child: const Text('Annuler')),
           TextButton(
               onPressed: () => Navigator.pop(context, true),
-              child: const Text('Supprimer',
-                  style: TextStyle(color: Colors.red))),
+              child: Text('Supprimer',
+                  style: TextStyle(color: theme.errorColor))),
         ],
       ),
     );
@@ -156,7 +159,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
           // Group avatar + name
           Container(
             padding: const EdgeInsets.all(24),
-            color: Colors.white,
+            color: theme.surfaceColor,
             child: Column(
               children: [
                 CircleAvatar(
@@ -214,7 +217,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
               ],
             ),
           ),
-          const Divider(height: 8, color: Color(0xFFF0F0F0)),
+          Divider(height: 8, color: theme.dividerColor),
 
           // Members section
           Padding(
@@ -250,10 +253,10 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                               ? 'Rétrograder membre'
                               : 'Promouvoir admin'),
                         ),
-                        const PopupMenuItem(
+                        PopupMenuItem(
                           value: 'kick',
                           child: Text('Retirer du groupe',
-                              style: TextStyle(color: Colors.red)),
+                              style: TextStyle(color: theme.errorColor)),
                         ),
                       ],
                     )
@@ -261,20 +264,18 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
             );
           }),
 
-          const Divider(height: 8, color: Color(0xFFF0F0F0)),
-
-          // Actions
+          Divider(height: 8, color: theme.dividerColor),
           ListTile(
-            leading: const Icon(Icons.exit_to_app, color: Colors.orange),
-            title: const Text('Quitter le groupe',
-                style: TextStyle(color: Colors.orange)),
+            leading: Icon(Icons.exit_to_app, color: theme.warningColor),
+            title: Text('Quitter le groupe',
+                style: TextStyle(color: theme.warningColor)),
             onTap: _leave,
           ),
           if (_isAdmin)
             ListTile(
-              leading: const Icon(Icons.delete_forever, color: Colors.red),
-              title: const Text('Supprimer le groupe',
-                  style: TextStyle(color: Colors.red)),
+              leading: Icon(Icons.delete_forever, color: theme.errorColor),
+              title: Text('Supprimer le groupe',
+                  style: TextStyle(color: theme.errorColor)),
               onTap: _delete,
             ),
         ],

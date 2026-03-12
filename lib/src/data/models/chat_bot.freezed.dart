@@ -30,6 +30,7 @@ mixin _$ChatBot {
   String? get topicDescription => throw _privateConstructorUsedError;
   int? get knowledgeBaseId => throw _privateConstructorUsedError;
   List<String> get toolNames => throw _privateConstructorUsedError;
+  bool get isPrimary => throw _privateConstructorUsedError;
 
   /// Serializes this ChatBot to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -55,6 +56,7 @@ abstract class $ChatBotCopyWith<$Res> {
     String? topicDescription,
     int? knowledgeBaseId,
     List<String> toolNames,
+    bool isPrimary,
   });
 }
 
@@ -82,6 +84,7 @@ class _$ChatBotCopyWithImpl<$Res, $Val extends ChatBot>
     Object? topicDescription = freezed,
     Object? knowledgeBaseId = freezed,
     Object? toolNames = null,
+    Object? isPrimary = null,
   }) {
     return _then(
       _value.copyWith(
@@ -121,6 +124,10 @@ class _$ChatBotCopyWithImpl<$Res, $Val extends ChatBot>
                 ? _value.toolNames
                 : toolNames // ignore: cast_nullable_to_non_nullable
                       as List<String>,
+            isPrimary: null == isPrimary
+                ? _value.isPrimary
+                : isPrimary // ignore: cast_nullable_to_non_nullable
+                      as bool,
           )
           as $Val,
     );
@@ -145,6 +152,7 @@ abstract class _$$ChatBotImplCopyWith<$Res> implements $ChatBotCopyWith<$Res> {
     String? topicDescription,
     int? knowledgeBaseId,
     List<String> toolNames,
+    bool isPrimary,
   });
 }
 
@@ -171,6 +179,7 @@ class __$$ChatBotImplCopyWithImpl<$Res>
     Object? topicDescription = freezed,
     Object? knowledgeBaseId = freezed,
     Object? toolNames = null,
+    Object? isPrimary = null,
   }) {
     return _then(
       _$ChatBotImpl(
@@ -210,6 +219,10 @@ class __$$ChatBotImplCopyWithImpl<$Res>
             ? _value._toolNames
             : toolNames // ignore: cast_nullable_to_non_nullable
                   as List<String>,
+        isPrimary: null == isPrimary
+            ? _value.isPrimary
+            : isPrimary // ignore: cast_nullable_to_non_nullable
+                  as bool,
       ),
     );
   }
@@ -228,6 +241,7 @@ class _$ChatBotImpl implements _ChatBot {
     this.topicDescription,
     this.knowledgeBaseId,
     final List<String> toolNames = const [],
+    this.isPrimary = false,
   }) : _toolNames = toolNames;
 
   factory _$ChatBotImpl.fromJson(Map<String, dynamic> json) =>
@@ -261,8 +275,12 @@ class _$ChatBotImpl implements _ChatBot {
   }
 
   @override
+  @JsonKey()
+  final bool isPrimary;
+
+  @override
   String toString() {
-    return 'ChatBot(id: $id, name: $name, description: $description, avatar: $avatar, active: $active, topicRestricted: $topicRestricted, topicDescription: $topicDescription, knowledgeBaseId: $knowledgeBaseId, toolNames: $toolNames)';
+    return 'ChatBot(id: $id, name: $name, description: $description, avatar: $avatar, active: $active, topicRestricted: $topicRestricted, topicDescription: $topicDescription, knowledgeBaseId: $knowledgeBaseId, toolNames: $toolNames, isPrimary: $isPrimary)';
   }
 
   @override
@@ -285,7 +303,9 @@ class _$ChatBotImpl implements _ChatBot {
             const DeepCollectionEquality().equals(
               other._toolNames,
               _toolNames,
-            ));
+            ) &&
+            (identical(other.isPrimary, isPrimary) ||
+                other.isPrimary == isPrimary));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -301,6 +321,7 @@ class _$ChatBotImpl implements _ChatBot {
     topicDescription,
     knowledgeBaseId,
     const DeepCollectionEquality().hash(_toolNames),
+    isPrimary,
   );
 
   /// Create a copy of ChatBot
@@ -328,6 +349,7 @@ abstract class _ChatBot implements ChatBot {
     final String? topicDescription,
     final int? knowledgeBaseId,
     final List<String> toolNames,
+    final bool isPrimary,
   }) = _$ChatBotImpl;
 
   factory _ChatBot.fromJson(Map<String, dynamic> json) = _$ChatBotImpl.fromJson;
@@ -350,6 +372,8 @@ abstract class _ChatBot implements ChatBot {
   int? get knowledgeBaseId;
   @override
   List<String> get toolNames;
+  @override
+  bool get isPrimary;
 
   /// Create a copy of ChatBot
   /// with the given fields replaced by the non-null parameter values.

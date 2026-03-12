@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:record/record.dart';
+import '../../config/chat_module.dart';
 
 /// Full-width recording bar shown instead of [ChatInputBar] while recording.
 /// Calls [onSend] with the recorded file path, or [onCancel] if discarded.
@@ -11,12 +12,10 @@ class VoiceRecorderBar extends StatefulWidget {
     super.key,
     required this.onSend,
     required this.onCancel,
-    this.primaryColor = const Color(0xFF075E54),
   });
 
   final void Function(File audioFile, String filename) onSend;
   final VoidCallback onCancel;
-  final Color primaryColor;
 
   @override
   State<VoiceRecorderBar> createState() => _VoiceRecorderBarState();
@@ -102,7 +101,7 @@ class _VoiceRecorderBarState extends State<VoiceRecorderBar>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: ChatModule.theme.surfaceColor,
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.08),
@@ -116,7 +115,7 @@ class _VoiceRecorderBarState extends State<VoiceRecorderBar>
           // Cancel
           IconButton(
             onPressed: _cancelRecording,
-            icon: const Icon(Icons.delete_outline, color: Colors.red),
+            icon: Icon(Icons.delete_outline, color: ChatModule.theme.errorColor),
             tooltip: 'Cancel',
           ),
           // Pulsing mic + duration
@@ -128,23 +127,23 @@ class _VoiceRecorderBarState extends State<VoiceRecorderBar>
                   scale: _pulseAnimation,
                   child: Icon(
                     Icons.mic,
-                    color: Colors.red,
+                    color: ChatModule.theme.errorColor,
                     size: 20,
                   ),
                 ),
                 const SizedBox(width: 8),
                 Text(
                   _formattedDuration,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.w500,
-                    color: Colors.red,
+                    color: ChatModule.theme.errorColor,
                   ),
                 ),
                 const SizedBox(width: 12),
-                const Text(
+                Text(
                   'Recording...',
-                  style: TextStyle(color: Colors.grey, fontSize: 13),
+                  style: TextStyle(color: ChatModule.theme.hintColor, fontSize: 13),
                 ),
               ],
             ),
@@ -154,7 +153,7 @@ class _VoiceRecorderBarState extends State<VoiceRecorderBar>
             onPressed: _isRecording ? _stopAndSend : null,
             icon: Icon(
               Icons.send,
-              color: widget.primaryColor,
+              color: ChatModule.theme.primaryColor,
             ),
             tooltip: 'Send',
           ),

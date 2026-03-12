@@ -15,6 +15,7 @@ class ChatBot with _$ChatBot {
     String? topicDescription,
     int? knowledgeBaseId,
     @Default([]) List<String> toolNames,
+    @Default(false) bool isPrimary,
   }) = _ChatBot;
 
   factory ChatBot.fromJson(Map<String, dynamic> json) =>

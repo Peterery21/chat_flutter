@@ -69,7 +69,7 @@ class _ChatListViewState extends State<_ChatListView> {
     final theme = ChatModule.theme;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: theme.surfaceColor,
       appBar: AppBar(
         backgroundColor: theme.appBarColor,
         title: Text(widget.title,
@@ -80,7 +80,7 @@ class _ChatListViewState extends State<_ChatListView> {
           ? FloatingActionButton(
               backgroundColor: theme.primaryColor,
               onPressed: widget.onNewChat,
-              child: const Icon(Icons.chat, color: Colors.white),
+              child: Icon(Icons.chat, color: theme.appBarTextColor),
             )
           : null,
       body: Column(
@@ -93,15 +93,15 @@ class _ChatListViewState extends State<_ChatListView> {
               onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
               decoration: InputDecoration(
                 hintText: 'Rechercher...',
-                hintStyle: TextStyle(color: Colors.grey.shade400, fontSize: 14),
+                hintStyle: TextStyle(color: theme.hintColor, fontSize: 14),
                 filled: true,
-                fillColor: Colors.grey.shade100,
+                fillColor: theme.inputFillColor,
                 contentPadding:
                     const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                prefixIcon: Icon(Icons.search, color: Colors.grey.shade400, size: 20),
+                prefixIcon: Icon(Icons.search, color: theme.hintColor, size: 20),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
-                        icon: Icon(Icons.close, size: 18, color: Colors.grey.shade400),
+                        icon: Icon(Icons.close, size: 18, color: theme.hintColor),
                         onPressed: () {
                           _searchCtrl.clear();
                           setState(() => _searchQuery = '');
@@ -150,13 +150,13 @@ class _ChatListViewState extends State<_ChatListView> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(Icons.chat_bubble_outline,
-                              size: 64, color: Colors.grey.shade300),
+                              size: 64, color: theme.dividerColor),
                           const SizedBox(height: 16),
                           Text(
                             _searchQuery.isNotEmpty
                                 ? 'Aucun résultat'
                                 : 'Aucune discussion',
-                            style: TextStyle(color: Colors.grey.shade500),
+                            style: TextStyle(color: theme.hintColor),
                           ),
                           if (widget.onNewChat != null &&
                               _searchQuery.isEmpty) ...[
@@ -228,14 +228,14 @@ class _RoomTile extends StatelessWidget {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
               decoration: BoxDecoration(
-                color: const Color(0xFF00897B).withOpacity(0.12),
+                color: theme.botIndicatorColor.withOpacity(0.12),
                 borderRadius: BorderRadius.circular(6),
               ),
-              child: const Text('IA',
+              child: Text('IA',
                   style: TextStyle(
                       fontSize: 10,
                       fontWeight: FontWeight.bold,
-                      color: Color(0xFF00897B))),
+                      color: theme.botIndicatorColor)),
             ),
           ],
         ],
@@ -286,8 +286,8 @@ class _RoomTile extends StatelessWidget {
               ),
               child: Text(
                 room.unreadCount > 99 ? '99+' : room.unreadCount.toString(),
-                style: const TextStyle(
-                    color: Colors.white,
+                style: TextStyle(
+                    color: theme.appBarTextColor,
                     fontSize: 11,
                     fontWeight: FontWeight.bold),
               ),
@@ -316,23 +316,19 @@ class _RoomAvatar extends StatelessWidget {
   const _RoomAvatar({required this.room});
   final ChatRoom room;
 
-  static Color _colorFromName(String name) {
-    const colors = [
-      Color(0xFF1976D2), Color(0xFF388E3C), Color(0xFF7B1FA2),
-      Color(0xFFE64A19), Color(0xFF0288D1), Color(0xFF00796B),
-      Color(0xFFC2185B), Color(0xFF5D4037),
-    ];
+  static Color _colorFromName(String name, List<Color> colors) {
     if (name.isEmpty) return colors[0];
     return colors[name.codeUnitAt(0) % colors.length];
   }
 
   @override
   Widget build(BuildContext context) {
+    final theme = ChatModule.theme;
     final displayName =
         room.botId != null ? (room.botName ?? room.name) : room.name;
     final avatarColor = room.botId != null
-        ? const Color(0xFF00897B)
-        : _colorFromName(displayName);
+        ? theme.botIndicatorColor
+        : _colorFromName(displayName, theme.avatarColors);
 
     return Stack(
       children: [
@@ -364,11 +360,11 @@ class _RoomAvatar extends StatelessWidget {
               width: 14,
               height: 14,
               decoration: BoxDecoration(
-                color: Colors.grey.shade600,
+                color: theme.hintColor,
                 shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 1.5),
+                border: Border.all(color: theme.surfaceColor, width: 1.5),
               ),
-              child: const Icon(Icons.group, size: 8, color: Colors.white),
+              child: Icon(Icons.group, size: 8, color: theme.surfaceColor),
             ),
           ),
       ],

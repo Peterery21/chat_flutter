@@ -104,13 +104,13 @@ class _NewChatScreenState extends State<NewChatScreen>
         ),
         actions: [
           if (_loading)
-            const Padding(
-              padding: EdgeInsets.all(16),
+            Padding(
+              padding: const EdgeInsets.all(16),
               child: SizedBox(
                   width: 20,
                   height: 20,
                   child: CircularProgressIndicator(
-                      strokeWidth: 2, color: Colors.white)),
+                      strokeWidth: 2, color: theme.appBarTextColor)),
             )
           else if (_tabs.index != 2)
             TextButton(
@@ -494,14 +494,15 @@ class _BotTabState extends State<_BotTab> {
     if (_loading) return const Center(child: CircularProgressIndicator());
     if (_error != null) return Center(child: Text(_error!));
     if (_bots.isEmpty) {
-      return const Center(
+      final theme = ChatModule.theme;
+      return Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(Icons.smart_toy_outlined, size: 56, color: Colors.grey),
-            SizedBox(height: 12),
+            Icon(Icons.smart_toy_outlined, size: 56, color: theme.hintColor),
+            const SizedBox(height: 12),
             Text('Aucun bot disponible',
-                style: TextStyle(color: Colors.grey)),
+                style: TextStyle(color: theme.hintColor)),
           ],
         ),
       );
@@ -518,15 +519,15 @@ class _BotTabState extends State<_BotTab> {
         return ListTile(
           leading: CircleAvatar(
             radius: 24,
-            backgroundColor: const Color(0xFF00897B).withOpacity(0.15),
+            backgroundColor: theme.botIndicatorColor.withOpacity(0.15),
             child: isStarting
-                ? const SizedBox(
+                ? SizedBox(
                     width: 20,
                     height: 20,
                     child: CircularProgressIndicator(
-                        strokeWidth: 2, color: Color(0xFF00897B)))
+                        strokeWidth: 2, color: theme.botIndicatorColor))
                 : Icon(Icons.smart_toy,
-                    color: const Color(0xFF00897B), size: 26),
+                    color: theme.botIndicatorColor, size: 26),
           ),
           title: Text(bot.name,
               style: const TextStyle(
@@ -548,8 +549,8 @@ class _BotTabState extends State<_BotTab> {
               borderRadius: BorderRadius.circular(20),
             ),
             child: Text('Démarrer',
-                style: const TextStyle(
-                    color: Colors.white,
+                style: TextStyle(
+                    color: theme.appBarTextColor,
                     fontSize: 12,
                     fontWeight: FontWeight.w600)),
           ),
