@@ -36,6 +36,9 @@ class ChatModule {
   /// - [theme]: optional [ChatTheme] to override colors manually
   /// - [parentTheme]: optional Flutter [ThemeData] to auto-derive [ChatTheme] from
   ///   the parent app's color scheme. Ignored if [theme] is also provided.
+  /// - [onUnauthorized]: optional callback invoked when a 401 is received.
+  ///   Should return a fresh Bearer token (after refresh) or null to give up.
+  ///   When a non-null token is returned, the failed request is retried once.
   static Future<void> init({
     required String baseUrl,
     required Future<String?> Function() authTokenProvider,
@@ -43,6 +46,7 @@ class ChatModule {
     required String currentUserName,
     ChatTheme theme = ChatTheme.defaultTheme,
     ThemeData? parentTheme,
+    Future<String?> Function()? onUnauthorized,
   }) async {
     if (_sl.isRegistered<ChatApiClient>()) return; // already initialized
 
@@ -62,6 +66,7 @@ class ChatModule {
       ChatApiClient(
         baseUrl: baseUrl,
         authTokenProvider: authTokenProvider,
+        onUnauthorized: onUnauthorized,
       ),
     );
 

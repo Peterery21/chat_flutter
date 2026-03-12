@@ -6,10 +6,16 @@ import '../models/models.dart';
 ///
 /// Automatically injects the Bearer token from [authTokenProvider]
 /// on every request via an interceptor.
+///
+/// When [onUnauthorized] is provided, a 401 response triggers a call to this
+/// callback. If it returns a new token, the original request is retried once
+/// with the refreshed token. This allows the host app to plug in its own
+/// token-refresh logic (e.g., using a refresh token).
 class ChatApiClient {
   ChatApiClient({
     required String baseUrl,
     required Future<String?> Function() authTokenProvider,
+    Future<String?> Function()? onUnauthorized,
   }) : _baseUrl = baseUrl {
     _dio = Dio(
       BaseOptions(
@@ -29,7 +35,20 @@ class ChatApiClient {
           }
           handler.next(options);
         },
-        onError: (error, handler) {
+        onError: (error, handler) async {
+          if (error.response?.statusCode == 401 && onUnauthorized != null) {
+            try {
+              final newToken = await onUnauthorized();
+              if (newToken != null && newToken.isNotEmpty) {
+                final retryOptions = error.requestOptions;
+                retryOptions.headers['Authorization'] = 'Bearer $newToken';
+                final response = await _dio.fetch(retryOptions);
+                return handler.resolve(response);
+              }
+            } catch (_) {
+              // Refresh failed — fall through to reject with original error
+            }
+          }
           handler.next(error);
         },
       ),
