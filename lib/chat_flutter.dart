@@ -16,6 +16,7 @@ library chat_flutter;
 // Config
 export 'src/config/chat_module.dart';
 export 'src/config/chat_theme.dart';
+export 'src/config/chat_routes.dart';
 
 // Models
 export 'src/data/models/models.dart';

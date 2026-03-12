@@ -8,8 +8,8 @@ part of 'chat_user.dart';
 
 _$ChatUserImpl _$$ChatUserImplFromJson(Map<String, dynamic> json) =>
     _$ChatUserImpl(
-      id: (json['id'] as num).toInt(),
-      userId: (json['userId'] as num).toInt(),
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      userId: (json['userId'] as num?)?.toInt() ?? 0,
       username: json['username'] as String,
       avatar: json['avatar'] as String?,
       online: json['online'] as bool?,

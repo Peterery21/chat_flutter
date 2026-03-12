@@ -18,8 +18,8 @@ class ChatUserResult {
 
   factory ChatUserResult.fromJson(Map<String, dynamic> json) {
     return ChatUserResult(
-      id: (json['id'] as num).toInt(),
-      userId: (json['userId'] as num).toInt(),
+      id: (json['id'] as num?)?.toInt() ?? 0,
+      userId: (json['userId'] as num?)?.toInt() ?? 0,
       name: json['name'] as String? ?? '',
       photo: json['photo'] as String?,
     );
