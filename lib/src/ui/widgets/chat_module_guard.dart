@@ -21,7 +21,7 @@ class _ChatModuleGuardState extends State<ChatModuleGuard> {
   @override
   void initState() {
     super.initState();
-    _ready = ChatModule.ready ?? Future.value();
+    _ready = ChatModule.ready;
   }
 
   @override
@@ -49,7 +49,7 @@ class _ChatModuleGuardState extends State<ChatModuleGuard> {
                   const SizedBox(height: 16),
                   ElevatedButton.icon(
                     onPressed: () => setState(() {
-                      _ready = ChatModule.ready ?? Future.value();
+                      _ready = ChatModule.ready;
                     }),
                     icon: const Icon(Icons.refresh),
                     label: const Text('Retry'),

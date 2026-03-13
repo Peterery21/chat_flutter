@@ -32,15 +32,15 @@ class ChatModule {
   // Stored as a static field to avoid conflicts with host app's GetIt registrations.
   static ThemeData? _parentTheme;
 
-  // Completer used to expose a awaitable [ready] future for late navigators.
-  static Completer<void>? _completer;
+  // Created eagerly so screens can await it even before init() is called.
+  static Completer<void> _readyCompleter = Completer<void>();
 
   /// A [Future] that completes once [init] has finished successfully.
   ///
   /// Screens should `await ChatModule.ready` before accessing [ChatModule.api]
-  /// or any other service, especially when the user navigates before init
-  /// finishes (e.g., auto-login at startup).
-  static Future<void>? get ready => _completer?.future;
+  /// or any other service. This future is always non-null — it will simply
+  /// block until [init] is called and completes, even if navigation happens first.
+  static Future<void> get ready => _readyCompleter.future;
 
   /// Initializes the chat package with the given configuration.
   ///
@@ -63,10 +63,8 @@ class ChatModule {
     ThemeData? parentTheme,
     Future<String?> Function()? onUnauthorized,
   }) async {
-    // Already initialized — return the same ready future so callers can still await it.
-    if (_completer != null) return _completer!.future;
-
-    _completer = Completer<void>();
+    // Already initialized — ready future is already completed.
+    if (_readyCompleter.isCompleted) return;
 
     try {
       _parentTheme = parentTheme;
@@ -108,10 +106,11 @@ class ChatModule {
       );
 
       await _sl<ChatStompClient>().connect();
-      _completer!.complete();
+      _readyCompleter.complete();
     } catch (e) {
-      // Reset so a subsequent call can retry.
-      _completer = null;
+      // Complete with error so waiting screens get the error state.
+      // Reset readyCompleter so a retry (after dispose) can re-init.
+      _readyCompleter.completeError(e);
       await _sl.reset();
       _parentTheme = null;
       rethrow;
@@ -123,7 +122,7 @@ class ChatModule {
     if (!_sl.isRegistered<ChatApiClient>()) return;
     await _sl<ChatStompClient>().disconnect();
     await _sl.reset();
-    _completer = null;
+    _readyCompleter = Completer<void>(); // reset for next login session
     _parentTheme = null;
   }
 
