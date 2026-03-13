@@ -55,3 +55,4 @@ export 'src/ui/widgets/voice_recorder_bar.dart';
 export 'src/ui/widgets/audio_player_widget.dart';
 export 'src/ui/widgets/video_player_widget.dart';
 export 'src/ui/widgets/file_attachment_widget.dart';
+export 'src/ui/widgets/chat_module_guard.dart';

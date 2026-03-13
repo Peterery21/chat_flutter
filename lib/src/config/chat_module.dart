@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import '../config/chat_theme.dart';
@@ -9,7 +11,7 @@ import '../data/repositories/chat_user_repository.dart';
 
 final _sl = GetIt.instance;
 
-/// Checks if [ChatModule] has been initialized.
+/// Checks if [ChatModule] has been fully initialized.
 bool get isChatModuleInitialized => _sl.isRegistered<ChatApiClient>();
 
 /// Global entry point for the chat_flutter package.
@@ -29,6 +31,16 @@ class ChatModule {
 
   // Stored as a static field to avoid conflicts with host app's GetIt registrations.
   static ThemeData? _parentTheme;
+
+  // Completer used to expose a awaitable [ready] future for late navigators.
+  static Completer<void>? _completer;
+
+  /// A [Future] that completes once [init] has finished successfully.
+  ///
+  /// Screens should `await ChatModule.ready` before accessing [ChatModule.api]
+  /// or any other service, especially when the user navigates before init
+  /// finishes (e.g., auto-login at startup).
+  static Future<void>? get ready => _completer?.future;
 
   /// Initializes the chat package with the given configuration.
   ///
@@ -51,47 +63,59 @@ class ChatModule {
     ThemeData? parentTheme,
     Future<String?> Function()? onUnauthorized,
   }) async {
-    if (_sl.isRegistered<ChatApiClient>()) return; // already initialized
+    // Already initialized — return the same ready future so callers can still await it.
+    if (_completer != null) return _completer!.future;
 
-    _parentTheme = parentTheme;
+    _completer = Completer<void>();
 
-    _sl.registerSingleton<ChatTheme>(theme);
-    _sl.registerSingleton<_ChatConfig>(
-      _ChatConfig(
-        baseUrl: baseUrl,
-        currentUserId: currentUserId,
-        currentUserName: currentUserName,
-      ),
-    );
+    try {
+      _parentTheme = parentTheme;
 
-    _sl.registerSingleton<ChatApiClient>(
-      ChatApiClient(
-        baseUrl: baseUrl,
-        authTokenProvider: authTokenProvider,
-        currentUserId: currentUserId,
-        currentUserName: currentUserName,
-        onUnauthorized: onUnauthorized,
-      ),
-    );
+      _sl.registerSingleton<ChatTheme>(theme);
+      _sl.registerSingleton<_ChatConfig>(
+        _ChatConfig(
+          baseUrl: baseUrl,
+          currentUserId: currentUserId,
+          currentUserName: currentUserName,
+        ),
+      );
 
-    _sl.registerSingleton<ChatStompClient>(
-      ChatStompClient(
-        baseUrl: baseUrl,
-        authTokenProvider: authTokenProvider,
-      ),
-    );
+      _sl.registerSingleton<ChatApiClient>(
+        ChatApiClient(
+          baseUrl: baseUrl,
+          authTokenProvider: authTokenProvider,
+          currentUserId: currentUserId,
+          currentUserName: currentUserName,
+          onUnauthorized: onUnauthorized,
+        ),
+      );
 
-    _sl.registerLazySingleton<ChatRoomRepository>(
-      () => ChatRoomRepository(_sl<ChatApiClient>()),
-    );
-    _sl.registerLazySingleton<ChatMessageRepository>(
-      () => ChatMessageRepository(_sl<ChatApiClient>()),
-    );
-    _sl.registerLazySingleton<ChatUserRepository>(
-      () => ChatUserRepository(_sl<ChatApiClient>()),
-    );
+      _sl.registerSingleton<ChatStompClient>(
+        ChatStompClient(
+          baseUrl: baseUrl,
+          authTokenProvider: authTokenProvider,
+        ),
+      );
 
-    await _sl<ChatStompClient>().connect();
+      _sl.registerLazySingleton<ChatRoomRepository>(
+        () => ChatRoomRepository(_sl<ChatApiClient>()),
+      );
+      _sl.registerLazySingleton<ChatMessageRepository>(
+        () => ChatMessageRepository(_sl<ChatApiClient>()),
+      );
+      _sl.registerLazySingleton<ChatUserRepository>(
+        () => ChatUserRepository(_sl<ChatApiClient>()),
+      );
+
+      await _sl<ChatStompClient>().connect();
+      _completer!.complete();
+    } catch (e) {
+      // Reset so a subsequent call can retry.
+      _completer = null;
+      await _sl.reset();
+      _parentTheme = null;
+      rethrow;
+    }
   }
 
   /// Disposes all resources (call on logout).
@@ -99,6 +123,7 @@ class ChatModule {
     if (!_sl.isRegistered<ChatApiClient>()) return;
     await _sl<ChatStompClient>().disconnect();
     await _sl.reset();
+    _completer = null;
     _parentTheme = null;
   }
 

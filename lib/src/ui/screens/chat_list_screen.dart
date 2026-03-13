@@ -6,6 +6,7 @@ import '../../blocs/chat_list/chat_list_state.dart';
 import '../../config/chat_module.dart';
 import '../../config/chat_theme.dart';
 import '../../data/models/models.dart';
+import '../widgets/chat_module_guard.dart';
 import '../widgets/typing_indicator.dart';
 
 /// Returns white or black depending on background luminance — ensures readable contrast.
@@ -34,13 +35,15 @@ class ChatListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) => ChatListBloc()
-        ..add(ChatListLoadRequested(ChatModule.currentUserId)),
-      child: _ChatListView(
-        onRoomTap: onRoomTap,
-        onNewChat: onNewChat,
-        title: title,
+    return ChatModuleGuard(
+      child: BlocProvider(
+        create: (_) => ChatListBloc()
+          ..add(ChatListLoadRequested(ChatModule.currentUserId)),
+        child: _ChatListView(
+          onRoomTap: onRoomTap,
+          onNewChat: onNewChat,
+          title: title,
+        ),
       ),
     );
   }
