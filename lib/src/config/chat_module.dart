@@ -27,6 +27,9 @@ bool get isChatModuleInitialized => _sl.isRegistered<ChatApiClient>();
 class ChatModule {
   ChatModule._();
 
+  // Stored as a static field to avoid conflicts with host app's GetIt registrations.
+  static ThemeData? _parentTheme;
+
   /// Initializes the chat package with the given configuration.
   ///
   /// - [baseUrl]: base URL of the chat-api backend (e.g. `https://api.myapp.com`)
@@ -50,10 +53,9 @@ class ChatModule {
   }) async {
     if (_sl.isRegistered<ChatApiClient>()) return; // already initialized
 
+    _parentTheme = parentTheme;
+
     _sl.registerSingleton<ChatTheme>(theme);
-    if (parentTheme != null) {
-      _sl.registerSingleton<ThemeData>(parentTheme);
-    }
     _sl.registerSingleton<_ChatConfig>(
       _ChatConfig(
         baseUrl: baseUrl,
@@ -97,11 +99,14 @@ class ChatModule {
     if (!_sl.isRegistered<ChatApiClient>()) return;
     await _sl<ChatStompClient>().disconnect();
     await _sl.reset();
+    _parentTheme = null;
   }
 
   static ChatTheme get theme => _sl<ChatTheme>();
-  static ThemeData? get parentTheme =>
-      _sl.isRegistered<ThemeData>() ? _sl<ThemeData>() : null;
+
+  /// The parent app's [ThemeData], stored to inherit fonts/input styles in routes.
+  static ThemeData? get parentTheme => _parentTheme;
+
   static String get baseUrl => _sl<_ChatConfig>().baseUrl;
   static int get currentUserId => _sl<_ChatConfig>().currentUserId;
   static String get currentUserName => _sl<_ChatConfig>().currentUserName;
