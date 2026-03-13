@@ -9,7 +9,7 @@ part of 'chat_room.dart';
 _$ChatRoomImpl _$$ChatRoomImplFromJson(Map<String, dynamic> json) =>
     _$ChatRoomImpl(
       id: (json['id'] as num).toInt(),
-      name: json['name'] as String,
+      name: json['name'] as String?,
       isGroup: json['isGroup'] as bool? ?? false,
       groupId: (json['groupId'] as num?)?.toInt(),
       avatar: json['photo'] as String?,

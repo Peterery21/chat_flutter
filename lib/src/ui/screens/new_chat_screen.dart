@@ -262,15 +262,15 @@ class _DirectTabState extends State<_DirectTab> {
                         r.photo != null ? NetworkImage(r.photo!) : null,
                     backgroundColor: theme.primaryColor.withOpacity(0.2),
                     child: r.photo == null
-                        ? Text(r.name[0].toUpperCase(),
+                        ? Text((r.name ?? '?')[0].toUpperCase(),
                             style: TextStyle(color: theme.primaryColor))
                         : null,
                   ),
-                  title: Text(r.name),
+                  title: Text(r.name ?? ''),
                   trailing: isSelected
                       ? Icon(Icons.check_circle, color: theme.primaryColor)
                       : null,
-                  onTap: () => widget.onSelectUser(r.id, r.name),
+                  onTap: () => widget.onSelectUser(r.id, r.name ?? ''),
                 );
               },
             ),
@@ -416,15 +416,15 @@ class _MemberSearchFieldState extends State<_MemberSearchField> {
                       r.photo != null ? NetworkImage(r.photo!) : null,
                   backgroundColor: theme.primaryColor.withOpacity(0.2),
                   child: r.photo == null
-                      ? Text(r.name[0].toUpperCase(),
+                      ? Text((r.name ?? '?')[0].toUpperCase(),
                           style: TextStyle(color: theme.primaryColor))
                       : null,
                 ),
-                title: Text(r.name),
+                title: Text(r.name ?? ''),
                 trailing: isSelected
                     ? Icon(Icons.check_circle, color: theme.primaryColor)
                     : const Icon(Icons.add_circle_outline),
-                onTap: () => widget.onToggle(r.id, r.name),
+                onTap: () => widget.onToggle(r.id, r.name ?? ''),
               );
             },
           ),

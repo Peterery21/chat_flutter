@@ -12,7 +12,7 @@ _$ChatParticipantImpl _$$ChatParticipantImplFromJson(
   id: (json['id'] as num).toInt(),
   chatUserId: (json['chatUserId'] as num).toInt(),
   chatRoomId: (json['chatRoomId'] as num).toInt(),
-  username: json['username'] as String,
+  username: (json['username'] ?? json['name']) as String? ?? '',
   avatar: json['avatar'] as String?,
   role: json['role'] as String? ?? 'MEMBER',
 );

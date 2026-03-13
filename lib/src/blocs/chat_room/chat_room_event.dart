@@ -9,9 +9,14 @@ abstract class ChatRoomEvent extends Equatable {
 }
 
 class ChatRoomLoadRequested extends ChatRoomEvent {
-  const ChatRoomLoadRequested({required this.roomId, required this.userId});
+  const ChatRoomLoadRequested({
+    required this.roomId,
+    required this.userId,
+    this.initialRoom,
+  });
   final int roomId;
   final int userId;
+  final ChatRoom? initialRoom;
   @override
   List<Object?> get props => [roomId, userId];
 }

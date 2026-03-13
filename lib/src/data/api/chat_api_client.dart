@@ -73,7 +73,7 @@ class ChatApiClient {
   }) async {
     final res = await _dio.post('/chats/user/createUpdate', data: {
       'userId': userId,
-      'username': username,
+      'name': username,
       if (avatar != null) 'avatar': avatar,
     });
     return ChatUser.fromJson(res.data);
@@ -89,7 +89,11 @@ class ChatApiClient {
   /// Parses a ChatRoom from backend JSON, mapping nested chatUser participants.
   static ChatRoom parseRoomJson(Map<String, dynamic> json) {
     final rawParticipants = json['participants'] as List<dynamic>?;
-    final room = ChatRoom.fromJson(json);
+    // Strip participants before fromJson — backend format uses nested chatUser,
+    // which is incompatible with the flat ChatParticipant.fromJson schema.
+    final jsonWithoutParticipants = Map<String, dynamic>.from(json)
+      ..remove('participants');
+    final room = ChatRoom.fromJson(jsonWithoutParticipants);
     if (rawParticipants == null || rawParticipants.isEmpty) return room;
     return room.copyWith(
       participants: rawParticipants
@@ -108,6 +112,7 @@ class ChatApiClient {
     int? targetUserId,
     bool isGroup = false,
     String? groupName,
+    int? groupId,
     List<int> participantIds = const [],
   }) async {
     final res = await _dio.post('/chats/room/create', data: {
@@ -115,6 +120,7 @@ class ChatApiClient {
       if (targetUserId != null) 'targetUserId': targetUserId,
       'isGroup': isGroup,
       if (groupName != null) 'groupName': groupName,
+      if (groupId != null) 'groupId': groupId,
       'participantIds': participantIds,
     });
     return parseRoomJson(res.data as Map<String, dynamic>);

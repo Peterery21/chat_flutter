@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../config/chat_module.dart';
+import '../../data/models/models.dart';
 import 'chat_room_event.dart';
 import 'chat_room_state.dart';
 
@@ -29,9 +30,10 @@ class ChatRoomBloc extends Bloc<ChatRoomEvent, ChatRoomState> {
       _roomId = event.roomId;
       _userId = event.userId;
 
-      final room = await ChatModule.rooms
-          .getRooms(event.userId)
-          .then((rooms) => rooms.firstWhere((r) => r.id == event.roomId));
+      final ChatRoom room = event.initialRoom ??
+          await ChatModule.rooms
+              .getRooms(event.userId)
+              .then((rooms) => rooms.firstWhere((r) => r.id == event.roomId));
 
       final messages = await ChatModule.messages.getMessages(
         userId: event.userId,

@@ -28,7 +28,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
   void initState() {
     super.initState();
     _room = widget.room;
-    _nameCtrl = TextEditingController(text: _room.name);
+    _nameCtrl = TextEditingController(text: _room.name ?? '');
   }
 
   @override
@@ -169,7 +169,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                       ? NetworkImage(_room.avatar!)
                       : null,
                   child: _room.avatar == null
-                      ? Text(_room.name[0].toUpperCase(),
+                      ? Text((_room.name ?? '?')[0].toUpperCase(),
                           style: TextStyle(
                               color: theme.primaryColor,
                               fontSize: 28,
@@ -202,7 +202,7 @@ class _GroupSettingsScreenState extends State<GroupSettingsScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      Text(_room.name,
+                      Text(_room.name ?? '',
                           style: const TextStyle(
                               fontSize: 20, fontWeight: FontWeight.bold)),
                       if (_isAdmin)

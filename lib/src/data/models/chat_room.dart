@@ -9,7 +9,7 @@ part 'chat_room.g.dart';
 class ChatRoom with _$ChatRoom {
   const factory ChatRoom({
     required int id,
-    required String name,
+    String? name,
     @Default(false) bool isGroup,
     int? groupId,
     @JsonKey(name: 'photo') String? avatar,

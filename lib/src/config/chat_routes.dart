@@ -51,6 +51,7 @@ List<RouteBase> chatGoRoutes({
         final room = state.extra as ChatRoom?;
         return ChatScreen(
           roomId: roomId,
+          initialRoom: room,
           onGroupSettings: room?.isGroup == true
               ? () =>
                   context.push('$chatsPath/$roomId/settings', extra: room)

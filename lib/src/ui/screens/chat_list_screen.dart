@@ -140,7 +140,7 @@ class _ChatListViewState extends State<_ChatListView> {
                           final name = (r.botId != null
                                   ? (r.botName ?? r.name)
                                   : r.name)
-                              .toLowerCase();
+                              ?.toLowerCase() ?? '';
                           return name.contains(_searchQuery);
                         }).toList();
 
@@ -218,7 +218,7 @@ class _RoomTile extends StatelessWidget {
         children: [
           Flexible(
             child: Text(
-              room.botId != null ? (room.botName ?? room.name) : room.name,
+              (room.botId != null ? (room.botName ?? room.name) : room.name) ?? '',
               style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15),
               overflow: TextOverflow.ellipsis,
             ),
@@ -325,7 +325,7 @@ class _RoomAvatar extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = ChatModule.theme;
     final displayName =
-        room.botId != null ? (room.botName ?? room.name) : room.name;
+        (room.botId != null ? (room.botName ?? room.name) : room.name) ?? '';
     final avatarColor = room.botId != null
         ? theme.botIndicatorColor
         : _colorFromName(displayName, theme.avatarColors);

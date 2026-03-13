@@ -22,7 +22,7 @@ ChatRoom _$ChatRoomFromJson(Map<String, dynamic> json) {
 /// @nodoc
 mixin _$ChatRoom {
   int get id => throw _privateConstructorUsedError;
-  String get name => throw _privateConstructorUsedError;
+  String? get name => throw _privateConstructorUsedError;
   bool get isGroup => throw _privateConstructorUsedError;
   int? get groupId => throw _privateConstructorUsedError;
   @JsonKey(name: 'photo')
@@ -53,7 +53,7 @@ abstract class $ChatRoomCopyWith<$Res> {
   @useResult
   $Res call({
     int id,
-    String name,
+    String? name,
     bool isGroup,
     int? groupId,
     @JsonKey(name: 'photo') String? avatar,
@@ -184,7 +184,7 @@ abstract class _$$ChatRoomImplCopyWith<$Res>
   @useResult
   $Res call({
     int id,
-    String name,
+    String? name,
     bool isGroup,
     int? groupId,
     @JsonKey(name: 'photo') String? avatar,
@@ -294,7 +294,7 @@ class __$$ChatRoomImplCopyWithImpl<$Res>
 class _$ChatRoomImpl implements _ChatRoom {
   const _$ChatRoomImpl({
     required this.id,
-    required this.name,
+    this.name,
     this.isGroup = false,
     this.groupId,
     @JsonKey(name: 'photo') this.avatar,
@@ -314,7 +314,7 @@ class _$ChatRoomImpl implements _ChatRoom {
   @override
   final int id;
   @override
-  final String name;
+  final String? name;
   @override
   @JsonKey()
   final bool isGroup;
@@ -417,7 +417,7 @@ class _$ChatRoomImpl implements _ChatRoom {
 abstract class _ChatRoom implements ChatRoom {
   const factory _ChatRoom({
     required final int id,
-    required final String name,
+    final String? name,
     final bool isGroup,
     final int? groupId,
     @JsonKey(name: 'photo') final String? avatar,
@@ -437,7 +437,7 @@ abstract class _ChatRoom implements ChatRoom {
   @override
   int get id;
   @override
-  String get name;
+  String? get name;
   @override
   bool get isGroup;
   @override

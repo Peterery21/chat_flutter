@@ -22,11 +22,13 @@ class ChatScreen extends StatelessWidget {
   const ChatScreen({
     super.key,
     required this.roomId,
+    this.initialRoom,
     this.onGroupSettings,
     this.onUserTap,
   });
 
   final int roomId;
+  final ChatRoom? initialRoom;
   final VoidCallback? onGroupSettings;
   final Function(int chatUserId)? onUserTap;
 
@@ -39,6 +41,7 @@ class ChatScreen extends StatelessWidget {
             ..add(ChatRoomLoadRequested(
               roomId: roomId,
               userId: ChatModule.currentUserId,
+              initialRoom: initialRoom,
             )),
         ),
         BlocProvider(create: (_) => TypingCubit(roomId)),
@@ -212,7 +215,7 @@ class _ChatScreenBodyState extends State<_ChatScreenBody> {
   PreferredSizeWidget _buildAppBar(
       BuildContext context, ChatRoom room, theme) {
     final displayName =
-        room.botId != null ? (room.botName ?? room.name) : room.name;
+        (room.botId != null ? (room.botName ?? room.name) : room.name) ?? '';
     return AppBar(
       backgroundColor: theme.appBarColor,
       iconTheme: IconThemeData(color: theme.appBarTextColor),

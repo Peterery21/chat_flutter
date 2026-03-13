@@ -15,11 +15,13 @@ class ChatRoomRepository {
     required int userId,
     required String groupName,
     required List<int> participantIds,
+    int? groupId,
   }) =>
       _api.createRoom(
         userId: userId,
         isGroup: true,
         groupName: groupName,
+        groupId: groupId,
         participantIds: participantIds,
       );
 

@@ -10,7 +10,7 @@ _$ChatUserImpl _$$ChatUserImplFromJson(Map<String, dynamic> json) =>
     _$ChatUserImpl(
       id: (json['id'] as num?)?.toInt() ?? 0,
       userId: (json['userId'] as num?)?.toInt() ?? 0,
-      username: json['username'] as String,
+      username: (json['username'] ?? json['name']) as String? ?? '',
       avatar: json['avatar'] as String?,
       online: json['online'] as bool?,
       lastSeen: json['lastSeen'] as String?,
