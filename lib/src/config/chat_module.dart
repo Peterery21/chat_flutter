@@ -50,10 +50,10 @@ class ChatModule {
   }) async {
     if (_sl.isRegistered<ChatApiClient>()) return; // already initialized
 
-    final resolvedTheme =
-        parentTheme != null ? ChatTheme.fromThemeData(parentTheme) : theme;
-
-    _sl.registerSingleton<ChatTheme>(resolvedTheme);
+    _sl.registerSingleton<ChatTheme>(theme);
+    if (parentTheme != null) {
+      _sl.registerSingleton<ThemeData>(parentTheme);
+    }
     _sl.registerSingleton<_ChatConfig>(
       _ChatConfig(
         baseUrl: baseUrl,
@@ -100,6 +100,8 @@ class ChatModule {
   }
 
   static ChatTheme get theme => _sl<ChatTheme>();
+  static ThemeData? get parentTheme =>
+      _sl.isRegistered<ThemeData>() ? _sl<ThemeData>() : null;
   static String get baseUrl => _sl<_ChatConfig>().baseUrl;
   static int get currentUserId => _sl<_ChatConfig>().currentUserId;
   static String get currentUserName => _sl<_ChatConfig>().currentUserName;

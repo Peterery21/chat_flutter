@@ -122,9 +122,10 @@ class ChatTheme {
       surfaceColor: theme.cardColor ?? cs.surface,
       dividerColor: theme.dividerColor,
       hintColor: theme.hintColor,
-      inputFillColor: isDark
-          ? cs.surfaceContainerHighest
-          : cs.surfaceContainerHighest.withOpacity(0.6),
+      inputFillColor: theme.inputDecorationTheme.fillColor ??
+          (isDark
+              ? cs.surfaceContainerHighest
+              : cs.surfaceContainerHighest.withOpacity(0.6)),
     );
   }
 
