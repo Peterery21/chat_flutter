@@ -119,7 +119,7 @@ class ChatTheme {
       warningColor: const Color(0xFFF57C00),
       botIndicatorColor: cs.secondary,
       avatarColors: _defaultAvatarColors,
-      surfaceColor: cs.surface,
+      surfaceColor: theme.cardColor ?? cs.surface,
       dividerColor: theme.dividerColor,
       hintColor: theme.hintColor,
       inputFillColor: isDark

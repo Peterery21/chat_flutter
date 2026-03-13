@@ -69,7 +69,7 @@ class _ChatListViewState extends State<_ChatListView> {
     final theme = ChatModule.theme;
 
     return Scaffold(
-      backgroundColor: theme.surfaceColor,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
         backgroundColor: theme.appBarColor,
         title: Text(widget.title,
