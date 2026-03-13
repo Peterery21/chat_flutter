@@ -4,8 +4,15 @@ import '../../blocs/chat_list/chat_list_bloc.dart';
 import '../../blocs/chat_list/chat_list_event.dart';
 import '../../blocs/chat_list/chat_list_state.dart';
 import '../../config/chat_module.dart';
+import '../../config/chat_theme.dart';
 import '../../data/models/models.dart';
 import '../widgets/typing_indicator.dart';
+
+/// Returns white or black depending on background luminance — ensures readable contrast.
+Color _contrastColor(Color bg) =>
+    ThemeData.estimateBrightnessForColor(bg) == Brightness.dark
+        ? Colors.white
+        : Colors.black87;
 
 /// Main chat list screen — shows all conversations for the current user.
 ///
@@ -287,7 +294,7 @@ class _RoomTile extends StatelessWidget {
               child: Text(
                 room.unreadCount > 99 ? '99+' : room.unreadCount.toString(),
                 style: TextStyle(
-                    color: theme.appBarTextColor,
+                    color: _contrastColor(theme.unreadBadgeColor),
                     fontSize: 11,
                     fontWeight: FontWeight.bold),
               ),

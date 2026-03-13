@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../config/chat_module.dart';
 import '../../config/chat_theme.dart';
@@ -113,7 +114,7 @@ class MessageBubble extends StatelessWidget {
             _DeletedText(theme: theme)
           else ...[
             if (message.mediaUrl != null) _MediaContent(message: message, isSender: _isOwn),
-            _MessageText(message: message, theme: theme),
+            _MessageText(message: message, theme: theme, isOwn: _isOwn),
           ],
           _MessageFooter(message: message, theme: theme, isOwn: _isOwn),
           if (message.reactions.isNotEmpty)
@@ -401,46 +402,82 @@ class _DeletedText extends StatelessWidget {
   }
 }
 
+/// Returns white or black depending on background luminance — ensures readable contrast.
+Color _contrastColor(Color bg) =>
+    ThemeData.estimateBrightnessForColor(bg) == Brightness.dark
+        ? Colors.white
+        : Colors.black87;
+
 class _MessageText extends StatelessWidget {
-  const _MessageText({required this.message, required this.theme});
+  const _MessageText({
+    required this.message,
+    required this.theme,
+    required this.isOwn,
+  });
   final ChatMessage message;
   final ChatTheme theme;
+  final bool isOwn;
 
   @override
   Widget build(BuildContext context) {
-    return _buildContent(
-      message.content,
-      theme.messageFontSize,
-    );
-  }
+    final bubbleColor =
+        isOwn ? theme.ownBubbleColor : theme.otherBubbleColor;
+    final textColor = isOwn
+        ? _contrastColor(bubbleColor)
+        : theme.primaryTextColor;
 
-  Widget _buildContent(String content, double fontSize) {
-    final regex = RegExp(r'(@\w+)');
-    if (!regex.hasMatch(content)) {
-      return Text(content, style: TextStyle(fontSize: fontSize));
-    }
-    final spans = <TextSpan>[];
-    int lastEnd = 0;
-    for (final match in regex.allMatches(content)) {
-      if (match.start > lastEnd) {
-        spans.add(TextSpan(text: content.substring(lastEnd, match.start)));
-      }
-      spans.add(TextSpan(
-        text: match.group(0),
-        style: TextStyle(
-          color: ChatModule.theme.primaryColor,
+    return MarkdownBody(
+      data: message.content,
+      selectable: false,
+      styleSheet: MarkdownStyleSheet(
+        p: TextStyle(
+          fontSize: theme.messageFontSize,
+          color: textColor,
+        ),
+        strong: TextStyle(
+          fontSize: theme.messageFontSize,
+          color: textColor,
           fontWeight: FontWeight.bold,
         ),
-      ));
-      lastEnd = match.end;
-    }
-    if (lastEnd < content.length) {
-      spans.add(TextSpan(text: content.substring(lastEnd)));
-    }
-    return RichText(
-      text: TextSpan(
-        style: TextStyle(fontSize: fontSize),
-        children: spans,
+        em: TextStyle(
+          fontSize: theme.messageFontSize,
+          color: textColor,
+          fontStyle: FontStyle.italic,
+        ),
+        del: TextStyle(
+          fontSize: theme.messageFontSize,
+          color: textColor.withOpacity(0.65),
+          decoration: TextDecoration.lineThrough,
+        ),
+        code: TextStyle(
+          fontSize: theme.messageFontSize - 1,
+          color: textColor,
+          backgroundColor: textColor.withOpacity(0.1),
+          fontFamily: 'monospace',
+        ),
+        codeblockDecoration: BoxDecoration(
+          color: textColor.withOpacity(0.08),
+          borderRadius: BorderRadius.circular(6),
+        ),
+        listBullet: TextStyle(
+          fontSize: theme.messageFontSize,
+          color: textColor,
+        ),
+        a: TextStyle(
+          fontSize: theme.messageFontSize,
+          color: theme.primaryColor,
+          decoration: TextDecoration.underline,
+        ),
+        blockquote: TextStyle(
+          fontSize: theme.messageFontSize,
+          color: textColor.withOpacity(0.75),
+          fontStyle: FontStyle.italic,
+        ),
+        blockquoteDecoration: BoxDecoration(
+          border: Border(
+            left: BorderSide(color: theme.primaryColor, width: 3),
+          ),
+        ),
       ),
     );
   }
