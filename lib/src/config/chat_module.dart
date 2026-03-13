@@ -105,8 +105,12 @@ class ChatModule {
         () => ChatUserRepository(_sl<ChatApiClient>()),
       );
 
-      await _sl<ChatStompClient>().connect();
+      // Mark ready now — all GetIt services are registered.
+      // STOMP connects in the background; screens don't need it to start.
       _readyCompleter.complete();
+      _sl<ChatStompClient>().connect().catchError((e) {
+        debugPrint('[ChatModule] STOMP connect failed: $e');
+      });
     } catch (e) {
       // Complete with error so waiting screens get the error state.
       // Reset readyCompleter so a retry (after dispose) can re-init.
