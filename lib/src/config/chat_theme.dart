@@ -92,10 +92,16 @@ class ChatTheme {
   factory ChatTheme.fromThemeData(ThemeData theme) {
     final cs = theme.colorScheme;
     final isDark = theme.brightness == Brightness.dark;
+    // Inherit AppBar colors from parent AppBarTheme so chat screens
+    // match the parent app's navigation style exactly.
+    final appBarBg =
+        theme.appBarTheme.backgroundColor ?? cs.surface;
+    final appBarFg =
+        theme.appBarTheme.foregroundColor ?? cs.onSurface;
     return ChatTheme(
       primaryColor: cs.primary,
-      appBarColor: cs.primary,
-      appBarTextColor: cs.onPrimary,
+      appBarColor: appBarBg,
+      appBarTextColor: appBarFg,
       ownBubbleColor: isDark
           ? cs.primaryContainer
           : cs.primaryContainer.withOpacity(0.6),
