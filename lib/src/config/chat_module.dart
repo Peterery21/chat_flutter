@@ -29,8 +29,10 @@ bool get isChatModuleInitialized => _sl.isRegistered<ChatApiClient>();
 class ChatModule {
   ChatModule._();
 
-  // Stored as a static field to avoid conflicts with host app's GetIt registrations.
-  static ThemeData? _parentTheme;
+  // Stored as static fields to avoid conflicts with host app's GetIt registrations.
+  static final ValueNotifier<ThemeData?> _parentThemeNotifier =
+      ValueNotifier(null);
+  static ChatTheme _chatTheme = ChatTheme.defaultTheme;
 
   // Created eagerly so screens can await it even before init() is called.
   static Completer<void> _readyCompleter = Completer<void>();
@@ -67,9 +69,9 @@ class ChatModule {
     if (_readyCompleter.isCompleted) return;
 
     try {
-      _parentTheme = parentTheme;
+      _parentThemeNotifier.value = parentTheme;
+      _chatTheme = theme;
 
-      _sl.registerSingleton<ChatTheme>(theme);
       _sl.registerSingleton<_ChatConfig>(
         _ChatConfig(
           baseUrl: baseUrl,
@@ -108,6 +110,20 @@ class ChatModule {
       // Mark ready now — all GetIt services are registered.
       // STOMP connects in the background; screens don't need it to start.
       _readyCompleter.complete();
+
+      // Auto-provision the ChatUser so all chat screens work immediately,
+      // not just BotChatScreen (which does its own createOrUpdate).
+      () async {
+        try {
+          await _sl<ChatApiClient>().createOrUpdateUser(
+            userId: currentUserId,
+            username: currentUserName,
+          );
+        } catch (e) {
+          debugPrint('[ChatModule] Failed to provision chat user: $e');
+        }
+      }();
+
       _sl<ChatStompClient>().connect().catchError((e) {
         debugPrint('[ChatModule] STOMP connect failed: $e');
       });
@@ -116,7 +132,8 @@ class ChatModule {
       // Reset readyCompleter so a retry (after dispose) can re-init.
       _readyCompleter.completeError(e);
       await _sl.reset();
-      _parentTheme = null;
+      _parentThemeNotifier.value = null;
+      _chatTheme = ChatTheme.defaultTheme;
       rethrow;
     }
   }
@@ -127,13 +144,25 @@ class ChatModule {
     await _sl<ChatStompClient>().disconnect();
     await _sl.reset();
     _readyCompleter = Completer<void>(); // reset for next login session
-    _parentTheme = null;
+    _parentThemeNotifier.value = null;
+    _chatTheme = ChatTheme.defaultTheme;
   }
 
-  static ChatTheme get theme => _sl<ChatTheme>();
+  static ChatTheme get theme => _chatTheme;
 
   /// The parent app's [ThemeData], stored to inherit fonts/input styles in routes.
-  static ThemeData? get parentTheme => _parentTheme;
+  static ThemeData? get parentTheme => _parentThemeNotifier.value;
+
+  /// A [ValueNotifier] that notifies when [parentTheme] changes.
+  /// Used by routes to rebuild the theme wrapper reactively.
+  static ValueNotifier<ThemeData?> get parentThemeNotifier =>
+      _parentThemeNotifier;
+
+  /// Updates the parent app's theme at runtime (e.g. on system dark/light change).
+  /// All chat screens will rebuild automatically via [parentThemeNotifier].
+  static void updateParentTheme(ThemeData theme) {
+    _parentThemeNotifier.value = theme;
+  }
 
   static String get baseUrl => _sl<_ChatConfig>().baseUrl;
   static int get currentUserId => _sl<_ChatConfig>().currentUserId;

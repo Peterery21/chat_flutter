@@ -9,11 +9,16 @@ import '../ui/screens/group_settings_screen.dart';
 import '../ui/screens/new_chat_screen.dart';
 
 /// Wraps [child] with the parent app's [ThemeData] if available via [ChatModule.parentTheme].
-/// This ensures all chat screens inherit the parent app's fonts, input styles, etc.
+/// Uses [ValueListenableBuilder] so the wrapper rebuilds reactively when the
+/// parent app's theme changes (e.g. system dark/light switch).
 Widget _withParentTheme(Widget child) {
-  final parentTheme = ChatModule.parentTheme;
-  if (parentTheme == null) return child;
-  return Theme(data: parentTheme, child: child);
+  return ValueListenableBuilder<ThemeData?>(
+    valueListenable: ChatModule.parentThemeNotifier,
+    builder: (_, theme, _) {
+      if (theme == null) return child;
+      return Theme(data: theme, child: child);
+    },
+  );
 }
 
 /// Returns pre-wired GoRouter routes for the full chat feature.
