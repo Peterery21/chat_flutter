@@ -33,6 +33,7 @@ class ChatModule {
   static final ValueNotifier<ThemeData?> _parentThemeNotifier =
       ValueNotifier(null);
   static ChatTheme _chatTheme = ChatTheme.defaultTheme;
+  static ChatTheme Function(ThemeData)? _themeBuilder;
 
   // Created eagerly so screens can await it even before init() is called.
   static Completer<void> _readyCompleter = Completer<void>();
@@ -63,14 +64,21 @@ class ChatModule {
     required String currentUserName,
     ChatTheme theme = ChatTheme.defaultTheme,
     ThemeData? parentTheme,
+    ChatTheme Function(ThemeData)? themeBuilder,
     Future<String?> Function()? onUnauthorized,
   }) async {
+    if (themeBuilder != null) _themeBuilder = themeBuilder;
+
     // Already initialized — ready future is already completed.
     if (_readyCompleter.isCompleted) return;
 
     try {
       _parentThemeNotifier.value = parentTheme;
-      _chatTheme = theme;
+      if (themeBuilder != null && parentTheme != null) {
+        _chatTheme = themeBuilder(parentTheme);
+      } else {
+        _chatTheme = theme;
+      }
 
       _sl.registerSingleton<_ChatConfig>(
         _ChatConfig(
@@ -146,6 +154,7 @@ class ChatModule {
     _readyCompleter = Completer<void>(); // reset for next login session
     _parentThemeNotifier.value = null;
     _chatTheme = ChatTheme.defaultTheme;
+    _themeBuilder = null;
   }
 
   static ChatTheme get theme => _chatTheme;
@@ -162,6 +171,7 @@ class ChatModule {
   /// All chat screens will rebuild automatically via [parentThemeNotifier].
   static void updateParentTheme(ThemeData theme) {
     _parentThemeNotifier.value = theme;
+    if (_themeBuilder != null) _chatTheme = _themeBuilder!(theme);
   }
 
   static String get baseUrl => _sl<_ChatConfig>().baseUrl;
