@@ -38,6 +38,10 @@ class ChatModule {
   // Created eagerly so screens can await it even before init() is called.
   static Completer<void> _readyCompleter = Completer<void>();
 
+  // Resolved chat-system user id (may differ from auth user id).
+  // Set once createOrUpdateUser() returns during init().
+  static int? _resolvedChatUserId;
+
   /// A [Future] that completes once [init] has finished successfully.
   ///
   /// Screens should `await ChatModule.ready` before accessing [ChatModule.api]
@@ -115,22 +119,22 @@ class ChatModule {
         () => ChatUserRepository(_sl<ChatApiClient>()),
       );
 
-      // Mark ready now — all GetIt services are registered.
-      // STOMP connects in the background; screens don't need it to start.
-      _readyCompleter.complete();
+      // Auto-provision the ChatUser and capture the chat-system userId before
+      // marking ready, so all screens use the correct chatUser.id (PK), not the
+      // auth userId. This avoids messages appearing on the wrong side of the UI.
+      try {
+        final chatUser = await _sl<ChatApiClient>().createOrUpdateUser(
+          userId: currentUserId,
+          username: currentUserName,
+        );
+        _resolvedChatUserId = chatUser.id;
+      } catch (e) {
+        debugPrint('[ChatModule] Failed to provision chat user: $e');
+        _resolvedChatUserId = currentUserId; // fallback: use auth userId
+      }
 
-      // Auto-provision the ChatUser so all chat screens work immediately,
-      // not just BotChatScreen (which does its own createOrUpdate).
-      () async {
-        try {
-          await _sl<ChatApiClient>().createOrUpdateUser(
-            userId: currentUserId,
-            username: currentUserName,
-          );
-        } catch (e) {
-          debugPrint('[ChatModule] Failed to provision chat user: $e');
-        }
-      }();
+      // Mark ready after user provisioning — screens get the correct currentUserId.
+      _readyCompleter.complete();
 
       _sl<ChatStompClient>().connect().catchError((e) {
         debugPrint('[ChatModule] STOMP connect failed: $e');
@@ -155,6 +159,7 @@ class ChatModule {
     _parentThemeNotifier.value = null;
     _chatTheme = ChatTheme.defaultTheme;
     _themeBuilder = null;
+    _resolvedChatUserId = null;
   }
 
   static ChatTheme get theme => _chatTheme;
@@ -175,7 +180,8 @@ class ChatModule {
   }
 
   static String get baseUrl => _sl<_ChatConfig>().baseUrl;
-  static int get currentUserId => _sl<_ChatConfig>().currentUserId;
+  static int get currentUserId =>
+      _resolvedChatUserId ?? _sl<_ChatConfig>().currentUserId;
   static String get currentUserName => _sl<_ChatConfig>().currentUserName;
   static ChatApiClient get api => _sl<ChatApiClient>();
   static ChatStompClient get stomp => _sl<ChatStompClient>();
