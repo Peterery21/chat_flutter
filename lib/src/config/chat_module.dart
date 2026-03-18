@@ -58,9 +58,28 @@ class ChatModule {
   /// - [theme]: optional [ChatTheme] to override colors manually
   /// - [parentTheme]: optional Flutter [ThemeData] to auto-derive [ChatTheme] from
   ///   the parent app's color scheme. Ignored if [theme] is also provided.
+  /// Callback invoked when a deeplink inside a bot message is tapped.
+  ///
+  /// The parent app should set this in [init] to handle navigation.
+  /// The [href] value is the raw URL from the markdown link, e.g.
+  /// `deeplink://trajet/123` or `deeplink://communaute/456`.
+  ///
+  /// Example:
+  /// ```dart
+  /// onDeeplinkTap: (href) {
+  ///   final uri = Uri.parse(href);
+  ///   if (uri.scheme == 'deeplink' && uri.host == 'trajet') {
+  ///     router.push('/trips/detail/${uri.pathSegments.first}');
+  ///   }
+  /// }
+  /// ```
+  static Function(String href)? onDeeplinkTap;
+
   /// - [onUnauthorized]: optional callback invoked when a 401 is received.
   ///   Should return a fresh Bearer token (after refresh) or null to give up.
   ///   When a non-null token is returned, the failed request is retried once.
+  /// - [onDeeplinkTap]: optional callback invoked when a deeplink inside a bot
+  ///   message is tapped. Receives the raw href (e.g. `deeplink://trajet/123`).
   static Future<void> init({
     required String baseUrl,
     required Future<String?> Function() authTokenProvider,
@@ -70,7 +89,9 @@ class ChatModule {
     ThemeData? parentTheme,
     ChatTheme Function(ThemeData)? themeBuilder,
     Future<String?> Function()? onUnauthorized,
+    Function(String href)? onDeeplinkTap,
   }) async {
+    ChatModule.onDeeplinkTap = onDeeplinkTap;
     if (themeBuilder != null) _themeBuilder = themeBuilder;
 
     // Already initialized — ready future is already completed.
@@ -160,6 +181,7 @@ class ChatModule {
     _chatTheme = ChatTheme.defaultTheme;
     _themeBuilder = null;
     _resolvedChatUserId = null;
+    onDeeplinkTap = null;
   }
 
   static ChatTheme get theme => _chatTheme;

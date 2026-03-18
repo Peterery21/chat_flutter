@@ -479,6 +479,11 @@ class _MessageText extends StatelessWidget {
           ),
         ),
       ),
+      onTapLink: (text, href, title) {
+        if (href != null && href.isNotEmpty) {
+          ChatModule.onDeeplinkTap?.call(href);
+        }
+      },
     );
   }
 }
